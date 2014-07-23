@@ -1,0 +1,11 @@
+[Desktop Entry]
+Name=VPN Connection Manager (IPOP)
+GenericName=VPN Connection Manager (IPOP)
+Comment=Add, Remove, and Edit VPN Connections
+Exec=nm-vpn-properties --import-service org.freedesktop.NetworkManager.ipop --import-file %f
+Icon=gnome-mime-application-x-ipop-settings
+Terminal=false
+Type=Application
+Categories=GNOME;Network;
+MimeType=application/x-ipop-settings;
+NoDisplay=true

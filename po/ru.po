@@ -1,0 +1,467 @@
+# translation of network-manager-openvpn.master.ru.po to Russian
+# Russian translation of NetworkManager openvpn
+# Copyright (C) Free Software Foundation, 2005
+# This file is distributed under the same license as the NetworkManager package.
+#
+# Maxim Dziumanenko <dziumanenko@gmail.com>, 2005-2007.
+# Leonid Kanter <leon@asplinux.ru>, 2007, 2008.
+# Артём Попов <artfwo@gmail.com>, 2009.
+# Yuri Kozlov <yuray@komyakino.ru>, 2010, 2011.
+# Stas Solovey <whats_up@tut.by>, 2011.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: network-manager-openvpn trunk\n"
+"Report-Msgid-Bugs-To: http://bugzilla.gnome.org/enter_bug.cgi?product=NetworkManager&keywords=I18N+L10N&component=VPN: openvpn\n"
+"POT-Creation-Date: 2011-08-26 18:23+0000\n"
+"PO-Revision-Date: 2011-10-29 15:18+0300\n"
+"Last-Translator: Yuri Myasoedov <omerta13@yandex.ru>\n"
+"Language-Team: Russian <gnome-cyr@gnome.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n%10==1 && n%100!=11 ? 0 : n%10>=2 && n%10<=4 && (n%100<10 || n%100>=20) ? 1 : 2);\n"
+"X-Generator: Lokalize 1.0\n"
+
+#: ../auth-dialog/vpn-password-dialog.c:95
+msgid "_Password:"
+msgstr "_Пароль:"
+
+#: ../auth-dialog/vpn-password-dialog.c:97
+msgid "_Secondary Password:"
+msgstr "_Вторичный пароль:"
+
+#: ../auth-dialog/vpn-password-dialog.c:239
+msgid "Sh_ow passwords"
+msgstr "Показ_ывать пароли"
+
+#: ../auth-dialog/main.c:133
+#, c-format
+msgid "You need to authenticate to access the Virtual Private Network '%s'."
+msgstr "Для доступа к виртуальной частной сети «%s» требуется аутентификация."
+
+#: ../auth-dialog/main.c:134
+msgid "Authenticate VPN"
+msgstr "Аутентификация VPN"
+
+#: ../auth-dialog/main.c:140
+msgid "Certificate pass_word:"
+msgstr "Па_роль к сертификату:"
+
+#: ../auth-dialog/main.c:154
+msgid "Certificate password:"
+msgstr "Пароль к сертификату:"
+
+#: ../properties/auth-helpers.c:148
+msgid "Choose your personal certificate..."
+msgstr "Выберите свой персональный сертификат…"
+
+#: ../properties/auth-helpers.c:166
+msgid "Choose your private key..."
+msgstr "Выберите свой личный ключ…"
+
+#: ../properties/auth-helpers.c:238
+msgid "Saved"
+msgstr "Сохранённые"
+
+#: ../properties/auth-helpers.c:246
+msgid "Always Ask"
+msgstr "Всегда спрашивать"
+
+#: ../properties/auth-helpers.c:251
+msgid "Not Required"
+msgstr "Не требуется"
+
+#: ../properties/auth-helpers.c:341
+msgid "Choose a Certificate Authority certificate..."
+msgstr "Выберите сертификат центра сертификации…"
+
+#: ../properties/auth-helpers.c:385
+msgid "Choose an OpenVPN static key..."
+msgstr "Выберите статический ключ OpenVPN…"
+
+#: ../properties/auth-helpers.c:409
+#: ../properties/auth-helpers.c:1169
+#: ../properties/auth-helpers.c:1571
+msgid "None"
+msgstr "Нет"
+
+#: ../properties/auth-helpers.c:865
+msgid "PEM or PKCS#12 certificates (*.pem, *.crt, *.key, *.cer, *.p12)"
+msgstr "Сертификаты PEM или PKCS#12 (*.pem, *.crt, *.key, *.cer, *.p12)"
+
+#: ../properties/auth-helpers.c:866
+msgid "PEM certificates (*.pem, *.crt, *.key, *.cer)"
+msgstr "Сертификаты PEM (*.pem, *.crt, *.key, *.cer)"
+
+#: ../properties/auth-helpers.c:926
+msgid "OpenVPN Static Keys (*.key)"
+msgstr "Статические ключи OpenVPN (*.key)"
+
+#: ../properties/auth-helpers.c:1085
+#: ../properties/auth-helpers.c:1161
+msgid "Default"
+msgstr "По умолчанию"
+
+#: ../properties/auth-helpers.c:1171
+msgid "RSA MD-4"
+msgstr "RSA MD-4"
+
+#: ../properties/auth-helpers.c:1173
+msgid "MD-5"
+msgstr "MD-5"
+
+#: ../properties/auth-helpers.c:1175
+msgid "SHA-1"
+msgstr "SHA-1"
+
+#: ../properties/auth-helpers.c:1177
+msgid "SHA-224"
+msgstr "SHA-224"
+
+#: ../properties/auth-helpers.c:1179
+msgid "SHA-256"
+msgstr "SHA-256"
+
+#: ../properties/auth-helpers.c:1181
+msgid "SHA-384"
+msgstr "SHA-384"
+
+#: ../properties/auth-helpers.c:1183
+msgid "SHA-512"
+msgstr "SHA-512"
+
+#: ../properties/auth-helpers.c:1185
+msgid "RIPEMD-160"
+msgstr "RIPEMD-160"
+
+#: ../properties/auth-helpers.c:1360
+#: ../properties/nm-openvpn-dialog.ui.h:16
+msgid "Not required"
+msgstr "Не требуется"
+
+#: ../properties/auth-helpers.c:1362
+msgid "HTTP"
+msgstr "HTTP"
+
+#: ../properties/auth-helpers.c:1364
+msgid "SOCKS"
+msgstr "SOCKS"
+
+#: ../properties/nm-openvpn.c:52
+msgid "OpenVPN"
+msgstr "OpenVPN"
+
+#: ../properties/nm-openvpn.c:53
+msgid "Compatible with the OpenVPN server."
+msgstr "Совместим с сервером OpenVPN."
+
+#: ../properties/nm-openvpn.c:317
+msgid "Certificates (TLS)"
+msgstr "Сертификаты (TLS)"
+
+#: ../properties/nm-openvpn.c:328
+msgid "Password"
+msgstr "Пароль"
+
+#: ../properties/nm-openvpn.c:341
+msgid "Password with Certificates (TLS)"
+msgstr "Пароль с сертификатами (TLS)"
+
+#: ../properties/nm-openvpn.c:353
+msgid "Static Key"
+msgstr "Статический ключ"
+
+#: ../properties/nm-openvpn-dialog.ui.h:1
+msgid " "
+msgstr " "
+
+#: ../properties/nm-openvpn-dialog.ui.h:2
+msgid "<b>Authentication</b>"
+msgstr "<b>Аутентификация</b>"
+
+#: ../properties/nm-openvpn-dialog.ui.h:3
+msgid "<b>General</b>"
+msgstr "<b>Общие</b>"
+
+#: ../properties/nm-openvpn-dialog.ui.h:4
+msgid ""
+"<i>Connect only to servers whose certificate matches the given subject.\n"
+"Example: /CN=myvpn.company.com</i>"
+msgstr ""
+"<i>Подключаться только к серверам, чьи сертификаты совпадают с заданным объектом.\n"
+"Пример: /CN=myvpn.company.com</i>"
+
+#: ../properties/nm-openvpn-dialog.ui.h:6
+msgid "<i>If key direction is used, it must be the opposite of that used on the VPN peer.  For example, if the peer uses '1', this connection must use '0'.  If you are unsure what value to use, contact your system administrator.</i>"
+msgstr "<i>Если используется направление ключа, оно должно быть противоположно направлению, которое использует вторая сторона. Например, если вторая сторона использует «1», это соединение должно использовать «0». Если вы не уверены, какое значение использовать, свяжитесь с системным администратором.</i>"
+
+#: ../properties/nm-openvpn-dialog.ui.h:7
+msgid "<i>Select this option if your organization requires the use of a proxy server to access the Internet.</i>"
+msgstr "<i>Выберите этот параметр, если в вашей организации требуется использовать прокси-сервер для доступа к Интернет.</i>"
+
+#: ../properties/nm-openvpn-dialog.ui.h:8
+msgid "Ad_vanced..."
+msgstr "_Дополнительно…"
+
+#: ../properties/nm-openvpn-dialog.ui.h:9
+msgid "CA Certificate:"
+msgstr "Сертификат ЦС:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:10
+msgid "Ci_pher:"
+msgstr "Шифр:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:11
+msgid "General"
+msgstr "Общие"
+
+#: ../properties/nm-openvpn-dialog.ui.h:12
+msgid "_HMAC Authentication:"
+msgstr "Аутентификация HMAC:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:13
+msgid "Key _Direction:"
+msgstr "Направление ключа:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:14
+msgid "Key _File:"
+msgstr "Файл ключа:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:15
+msgid "Local IP Address:"
+msgstr "Локальный IP-адрес:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:17
+msgid "OpenVPN Advanced Options"
+msgstr "Дополнительные параметры OpenVPN"
+
+#: ../properties/nm-openvpn-dialog.ui.h:18
+msgid "Password:"
+msgstr "Пароль:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:19
+msgid "_Port:"
+msgstr "Порт:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:20
+msgid "Private Key Password:"
+msgstr "Пароль к личному ключу:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:21
+msgid "Private Key:"
+msgstr "Личный ключ:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:22
+msgid "Proxies"
+msgstr "Прокси"
+
+#: ../properties/nm-openvpn-dialog.ui.h:23
+msgid "Proxy Passwor_d:"
+msgstr "Пароль к прокси:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:24
+msgid "Proxy _Type:"
+msgstr "Тип прокси:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:25
+msgid "Proxy _Username:"
+msgstr "Имя пользователя на прокси:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:26
+msgid "Remote IP Address:"
+msgstr "Удалённый IP-адрес:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:27
+msgid "Restrict tunnel TCP Maximum _Segment Size (MSS)"
+msgstr "Ограничить максимальный размер сегмента TCP (MSS) туннеля"
+
+#: ../properties/nm-openvpn-dialog.ui.h:28
+msgid "Retry indefinitely when errors occur"
+msgstr "Повторять бесконечно при ошибках"
+
+#: ../properties/nm-openvpn-dialog.ui.h:29
+msgid "Security"
+msgstr "Безопасность"
+
+#: ../properties/nm-openvpn-dialog.ui.h:30
+msgid "Server _Address:"
+msgstr "Адрес сервера:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:31
+msgid "_Show password"
+msgstr "Показать пароль"
+
+#: ../properties/nm-openvpn-dialog.ui.h:32
+msgid "_Show passwords"
+msgstr "Показать пароли"
+
+#: ../properties/nm-openvpn-dialog.ui.h:33
+msgid "Static Key:"
+msgstr "Статический ключ:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:34
+msgid "_Subject Match:"
+msgstr "Объект совпадения:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:35
+msgid "TLS Authentication"
+msgstr "Аутентификация TLS"
+
+#: ../properties/nm-openvpn-dialog.ui.h:36
+msgid "Type:"
+msgstr "Тип:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:37
+msgid "Use L_ZO data compression"
+msgstr "Использовать для данных сжатие L_ZO"
+
+#: ../properties/nm-openvpn-dialog.ui.h:38
+msgid "Use a TA_P device"
+msgstr "Использовать устройство TA_P"
+
+#: ../properties/nm-openvpn-dialog.ui.h:39
+msgid "Use a _TCP connection"
+msgstr "Использовать соединение _TCP"
+
+#: ../properties/nm-openvpn-dialog.ui.h:40
+msgid "Use additional _TLS authentication"
+msgstr "Использовать дополнительную аутентификацию TLS"
+
+#: ../properties/nm-openvpn-dialog.ui.h:41
+msgid "Use custom UDP _fragment size:"
+msgstr "Использовать нестандартный размер _фрагмента UDP:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:42
+msgid "Use custom _renegotiation interval:"
+msgstr "Использовать нестандартный интервал _пересогласования:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:43
+msgid "Use custom tunnel Maximum Transmission _Unit (MTU):"
+msgstr "Использовать нестандартный максимальный размер элемента передачи (MTU):"
+
+#: ../properties/nm-openvpn-dialog.ui.h:44
+msgid "Use custom gateway p_ort:"
+msgstr "Использовать другой _порт шлюза:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:45
+msgid "User Certificate:"
+msgstr "Сертификат пользователя:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:46
+msgid "User name:"
+msgstr "Имя пользователя:"
+
+#: ../properties/nm-openvpn-dialog.ui.h:47
+msgid "_Gateway:"
+msgstr "_Шлюз:"
+
+msgid "Rando_mize remote hosts"
+msgstr "_Случайный шлюз"
+
+#: ../src/nm-openvpn-service.c:192
+#, c-format
+msgid "invalid address '%s'"
+msgstr "некорректный адрес «%s»"
+
+#: ../src/nm-openvpn-service.c:204
+#, c-format
+msgid "invalid integer property '%s' or out of range [%d -> %d]"
+msgstr "«%s» некорректно для целочисленного свойства или вне диапазона [%d -> %d]"
+
+#: ../src/nm-openvpn-service.c:214
+#, c-format
+msgid "invalid boolean property '%s' (not yes or no)"
+msgstr "«%s» некорректно для логического свойства (не «да» или «нет»)"
+
+#: ../src/nm-openvpn-service.c:221
+#, c-format
+msgid "unhandled property '%s' type %s"
+msgstr "свойство «%s» имеет необрабатываемый тип %s"
+
+#: ../src/nm-openvpn-service.c:232
+#, c-format
+msgid "property '%s' invalid or not supported"
+msgstr "свойство «%s» некорректно или не поддерживается"
+
+#: ../src/nm-openvpn-service.c:249
+msgid "No VPN configuration options."
+msgstr "Нет параметров настройки VPN."
+
+#: ../src/nm-openvpn-service.c:272
+msgid "No VPN secrets!"
+msgstr "Нет VPN-ключей!"
+
+#: ../src/nm-openvpn-service.c:745
+msgid "Could not find the openvpn binary."
+msgstr "Не удалось найти исполняемый файл openvpn."
+
+#: ../src/nm-openvpn-service.c:756
+msgid "Invalid HMAC auth."
+msgstr "Некорректная аутентификация HMAC."
+
+#: ../src/nm-openvpn-service.c:768
+#: ../src/nm-openvpn-service.c:1164
+#: ../src/nm-openvpn-service.c:1234
+msgid "Invalid connection type."
+msgstr "Некорректный тип подключения."
+
+#: ../src/nm-openvpn-service.c:803
+#, c-format
+msgid "Invalid proxy type '%s'."
+msgstr "Некорректный тип прокси «%s»."
+
+#: ../src/nm-openvpn-service.c:839
+#, c-format
+msgid "Invalid port number '%s'."
+msgstr "Некорректный номер порта «%s»."
+
+#: ../src/nm-openvpn-service.c:889
+#, c-format
+msgid "Invalid reneg seconds '%s'."
+msgstr "Некорректное число секунд «%s» для пересогласования."
+
+#: ../src/nm-openvpn-service.c:913
+#, c-format
+msgid "Invalid TUN MTU size '%s'."
+msgstr "Некорректный размер TUN MTU «%s»."
+
+#: ../src/nm-openvpn-service.c:928
+#, c-format
+msgid "Invalid fragment size '%s'."
+msgstr "Некорректный размер фрагмента «%s»."
+
+#: ../src/nm-openvpn-service.c:996
+msgid "Missing required local IP address for static key mode."
+msgstr "Отсутствует необходимый локальный IP-адрес для режима со статическим ключом."
+
+#: ../src/nm-openvpn-service.c:1009
+msgid "Missing required remote IP address for static key mode."
+msgstr "Отсутствует необходимый удалённый IP-адрес для режима со статическим ключом."
+
+#: ../src/nm-openvpn-service.c:1034
+#, c-format
+msgid "Unknown connection type '%s'."
+msgstr "Неизвестный тип подключения «%s»."
+
+#: ../src/nm-openvpn-service.c:1153
+#: ../src/nm-openvpn-service.c:1224
+msgid "Could not process the request because the VPN connection settings were invalid."
+msgstr "Не удалось обработать запрос, так как настройки подключения VPN некорректны."
+
+#: ../src/nm-openvpn-service.c:1178
+msgid "Could not process the request because no username was provided."
+msgstr "Не удалось обработать запрос, так как не указано имя пользователя."
+
+#: ../src/nm-openvpn-service.c:1368
+msgid "Don't quit when VPN connection terminates"
+msgstr "Не завершать работу при отключении VPN"
+
+#: ../src/nm-openvpn-service.c:1369
+msgid "Enable verbose debug logging (may expose passwords)"
+msgstr "Включить подробный режим отладки (могут отображаться пароли)"
+
+#: ../src/nm-openvpn-service.c:1383
+msgid "nm-vpnc-service provides integrated OpenVPN capability to NetworkManager."
+msgstr "nm-vpnc-service позволяет использовать OpenVPN в NetworkManager."
+

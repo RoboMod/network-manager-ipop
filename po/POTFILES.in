@@ -1,0 +1,11 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+auth-dialog/vpn-password-dialog.c
+auth-dialog/main.c
+nm-ipop.desktop.in
+properties/auth-helpers.c
+properties/nm-ipop.c
+[type: gettext/glade]properties/nm-ipop-dialog.ui
+src/nm-ipop-service.c
+src/nm-ipop-service-ipop-helper.c
+
