@@ -34,8 +34,8 @@
 #include <nm-vpn-plugin-ui-interface.h>
 
 #include "nm-test-helpers.h"
-#include "properties/nm-openvpn.h"
-#include "src/nm-openvpn-service.h"
+#include "properties/nm-ipop.h"
+#include "src/nm-ipop-service.h"
 
 static NMConnection *
 get_basic_connection (const char *detail,
@@ -142,31 +142,31 @@ test_password_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "password-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_PASSWORD);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_TAP_DEV, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_PROTO_TCP, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_COMP_LZO, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_RENEG_SECONDS, "0");
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE, "test.server.com");
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_PORT, "443");
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_CERT, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_KEY, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY_DIRECTION, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_TA, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_TA_DIR, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_CIPHER, "AES-256-CBC");
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_LOCAL_IP, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE_IP, NULL);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_PASSWORD);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_TAP_DEV, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_PROTO_TCP, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_COMP_LZO, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_RENEG_SECONDS, "0");
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_REMOTE, "test.server.com");
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_PORT, "443");
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_CERT, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_KEY, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY_DIRECTION, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_TA, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_TA_DIR, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_CIPHER, "AES-256-CBC");
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_LOCAL_IP, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_REMOTE_IP, NULL);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
 
 	expected_cacert = g_strdup_printf ("%s/cacert.pem", dir);
-	test_item ("password-import-data", s_vpn, NM_OPENVPN_KEY_CA, expected_cacert);
+	test_item ("password-import-data", s_vpn, NM_IPOP_KEY_CA, expected_cacert);
 	g_free (expected_cacert);
 
 	/* Secrets */
-	test_secret ("password-import-secrets", s_vpn, NM_OPENVPN_KEY_PASSWORD, NULL);
-	test_secret ("password-import-secrets", s_vpn, NM_OPENVPN_KEY_CERTPASS, NULL);
+	test_secret ("password-import-secrets", s_vpn, NM_IPOP_KEY_PASSWORD, NULL);
+	test_secret ("password-import-secrets", s_vpn, NM_IPOP_KEY_CERTPASS, NULL);
 
 	g_object_unref (connection);
 }
@@ -272,41 +272,41 @@ test_tls_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "tls-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_TLS);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_TAP_DEV, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_PROTO_TCP, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_COMP_LZO, "yes");
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_RENEG_SECONDS, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE, "173.8.149.245");
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_PORT, "1194");
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY_DIRECTION, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_CIPHER, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_LOCAL_IP, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE_IP, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_TLS_REMOTE, "/CN=myvpn.company.com");
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_TLS);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_TAP_DEV, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_PROTO_TCP, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_COMP_LZO, "yes");
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_RENEG_SECONDS, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_REMOTE, "173.8.149.245");
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_PORT, "1194");
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY_DIRECTION, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_CIPHER, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_LOCAL_IP, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_REMOTE_IP, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_TLS_REMOTE, "/CN=myvpn.company.com");
 
 	expected_path = g_strdup_printf ("%s/keys/mg8.ca", dir);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_CA, expected_path);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_CA, expected_path);
 	g_free (expected_path);
 
 	expected_path = g_strdup_printf ("%s/keys/clee.crt", dir);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_CERT, expected_path);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_CERT, expected_path);
 	g_free (expected_path);
 
 	expected_path = g_strdup_printf ("%s/keys/clee.key", dir);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_KEY, expected_path);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_KEY, expected_path);
 	g_free (expected_path);
 
 	expected_path = g_strdup_printf ("%s/keys/46.key", dir);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_TA, expected_path);
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_TA, expected_path);
 	g_free (expected_path);
-	test_item ("tls-import-data", s_vpn, NM_OPENVPN_KEY_TA_DIR, "1");
+	test_item ("tls-import-data", s_vpn, NM_IPOP_KEY_TA_DIR, "1");
 
 	/* Secrets */
-	test_secret ("tls-import-secrets", s_vpn, NM_OPENVPN_KEY_PASSWORD, NULL);
-	test_secret ("tls-import-secrets", s_vpn, NM_OPENVPN_KEY_CERTPASS, NULL);
+	test_secret ("tls-import-secrets", s_vpn, NM_IPOP_KEY_PASSWORD, NULL);
+	test_secret ("tls-import-secrets", s_vpn, NM_IPOP_KEY_CERTPASS, NULL);
 
 	g_object_unref (connection);
 }
@@ -386,35 +386,35 @@ test_pkcs12_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "pkcs12-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_TLS);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_TAP_DEV, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_PROTO_TCP, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_COMP_LZO, "yes");
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_RENEG_SECONDS, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE, "173.8.149.245");
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_PORT, "1194");
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY_DIRECTION, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_CIPHER, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_LOCAL_IP, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE_IP, NULL);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_TLS);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_TAP_DEV, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_PROTO_TCP, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_COMP_LZO, "yes");
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_RENEG_SECONDS, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_REMOTE, "173.8.149.245");
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_PORT, "1194");
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY_DIRECTION, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_CIPHER, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_LOCAL_IP, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_REMOTE_IP, NULL);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
 
 	expected_path = g_strdup_printf ("%s/keys/mine.p12", dir);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_CA, expected_path);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_CA, expected_path);
 	g_free (expected_path);
 
 	expected_path = g_strdup_printf ("%s/keys/mine.p12", dir);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_CERT, expected_path);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_CERT, expected_path);
 	g_free (expected_path);
 
 	expected_path = g_strdup_printf ("%s/keys/mine.p12", dir);
-	test_item ("pkcs12-import-data", s_vpn, NM_OPENVPN_KEY_KEY, expected_path);
+	test_item ("pkcs12-import-data", s_vpn, NM_IPOP_KEY_KEY, expected_path);
 	g_free (expected_path);
 
 	/* Secrets */
-	test_secret ("pkcs12-import-secrets", s_vpn, NM_OPENVPN_KEY_PASSWORD, NULL);
-	test_secret ("pkcs12-import-secrets", s_vpn, NM_OPENVPN_KEY_CERTPASS, NULL);
+	test_secret ("pkcs12-import-secrets", s_vpn, NM_IPOP_KEY_PASSWORD, NULL);
+	test_secret ("pkcs12-import-secrets", s_vpn, NM_IPOP_KEY_CERTPASS, NULL);
 
 	g_object_unref (connection);
 }
@@ -494,7 +494,7 @@ test_non_utf8_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "non-utf8-import", "missing 'vpn' setting");
 
 	expected_path = g_strdup_printf ("%s/%s", dir, expected_cacert);
-	test_item ("non-utf8-import-data", s_vpn, NM_OPENVPN_KEY_CA, expected_path);
+	test_item ("non-utf8-import-data", s_vpn, NM_IPOP_KEY_CA, expected_path);
 	g_free (expected_path);
 
 	g_object_unref (connection);
@@ -535,28 +535,28 @@ test_static_key_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "static-key-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_STATIC_KEY);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_TAP_DEV, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_PROTO_TCP, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_COMP_LZO, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_RENEG_SECONDS, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE, "10.11.12.13");
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_PORT, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY_DIRECTION, "1");
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_TA, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_TA_DIR, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_CIPHER, NULL);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_LOCAL_IP, "10.8.0.2");
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE_IP, "10.8.0.1");
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_STATIC_KEY);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_TAP_DEV, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_PROTO_TCP, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_COMP_LZO, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_RENEG_SECONDS, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_REMOTE, "10.11.12.13");
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_PORT, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY_DIRECTION, "1");
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_TA, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_TA_DIR, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_CIPHER, NULL);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_LOCAL_IP, "10.8.0.2");
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_REMOTE_IP, "10.8.0.1");
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
 
 	expected_path = g_strdup_printf ("%s/static.key", dir);
-	test_item ("static-key-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY, expected_path);
+	test_item ("static-key-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY, expected_path);
 	g_free (expected_path);
 
 	/* Secrets */
-	test_secret ("static-key-import-secrets", s_vpn, NM_OPENVPN_KEY_PASSWORD, NULL);
-	test_secret ("static-key-import-secrets", s_vpn, NM_OPENVPN_KEY_CERTPASS, NULL);
+	test_secret ("static-key-import-secrets", s_vpn, NM_IPOP_KEY_PASSWORD, NULL);
+	test_secret ("static-key-import-secrets", s_vpn, NM_IPOP_KEY_CERTPASS, NULL);
 
 	g_object_unref (connection);
 }
@@ -630,8 +630,8 @@ test_port_import (NMVpnPluginUiInterface *plugin,
 	        detail, "missing 'vpn' setting");
 
 	/* Data items */
-	test_item (detail, s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_TLS);
-	test_item (detail, s_vpn, NM_OPENVPN_KEY_PORT, expected_port);
+	test_item (detail, s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_TLS);
+	test_item (detail, s_vpn, NM_IPOP_KEY_PORT, expected_port);
 
 	g_object_unref (connection);
 }
@@ -695,9 +695,9 @@ test_tun_opts_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "tunopts-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("tunopts-import-data", s_vpn, NM_OPENVPN_KEY_MSSFIX, "yes");
-	test_item ("tunopts-import-data", s_vpn, NM_OPENVPN_KEY_TUNNEL_MTU, "1300");
-	test_item ("tunopts-import-data", s_vpn, NM_OPENVPN_KEY_FRAGMENT_SIZE, "1200");
+	test_item ("tunopts-import-data", s_vpn, NM_IPOP_KEY_MSSFIX, "yes");
+	test_item ("tunopts-import-data", s_vpn, NM_IPOP_KEY_TUNNEL_MTU, "1300");
+	test_item ("tunopts-import-data", s_vpn, NM_IPOP_KEY_FRAGMENT_SIZE, "1200");
 
 	g_object_unref (connection);
 }
@@ -757,29 +757,29 @@ test_proxy_http_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "proxy-http-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_PASSWORD);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_TAP_DEV, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_PROTO_TCP, "yes");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_COMP_LZO, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_RENEG_SECONDS, "0");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE, "test.server.com");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_PORT, "443");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_CERT, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_KEY, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY_DIRECTION, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_TA, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_TA_DIR, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_CIPHER, "AES-256-CBC");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_LOCAL_IP, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE_IP, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_TYPE, "http");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_SERVER, "10.1.1.1");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_PORT, "8080");
-	test_item ("proxy-http-import-data", s_vpn, NM_OPENVPN_KEY_HTTP_PROXY_USERNAME, "myusername");
-	test_secret ("proxy-http-import-secrets", s_vpn, NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD, "mypassword");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_PASSWORD);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_TAP_DEV, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_PROTO_TCP, "yes");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_COMP_LZO, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_RENEG_SECONDS, "0");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_REMOTE, "test.server.com");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_PORT, "443");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_CERT, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_KEY, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY_DIRECTION, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_TA, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_TA_DIR, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_CIPHER, "AES-256-CBC");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_LOCAL_IP, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_REMOTE_IP, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_PROXY_TYPE, "http");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_PROXY_SERVER, "10.1.1.1");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_PROXY_PORT, "8080");
+	test_item ("proxy-http-import-data", s_vpn, NM_IPOP_KEY_HTTP_PROXY_USERNAME, "myusername");
+	test_secret ("proxy-http-import-secrets", s_vpn, NM_IPOP_KEY_HTTP_PROXY_PASSWORD, "mypassword");
 
 	g_object_unref (connection);
 }
@@ -839,29 +839,29 @@ test_proxy_http_with_auth_import (NMVpnPluginUiInterface *plugin, const char *di
 	        "proxy-http-with-auth-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_PASSWORD);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_TAP_DEV, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_PROTO_TCP, "yes");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_COMP_LZO, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_RENEG_SECONDS, "0");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE, "test.server.com");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_PORT, "443");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_CERT, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_KEY, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY_DIRECTION, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_TA, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_TA_DIR, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_CIPHER, "AES-256-CBC");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_LOCAL_IP, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE_IP, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_TYPE, "http");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_SERVER, "proxy.domain.tld");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_PORT, "3128");
-	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_OPENVPN_KEY_HTTP_PROXY_USERNAME, "myusername");
-	test_secret ("proxy-http-with-auth-import-secrets", s_vpn, NM_OPENVPN_KEY_HTTP_PROXY_PASSWORD, "mypassword");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_PASSWORD);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_TAP_DEV, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_PROTO_TCP, "yes");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_COMP_LZO, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_RENEG_SECONDS, "0");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_REMOTE, "test.server.com");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_PORT, "443");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_CERT, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_KEY, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY_DIRECTION, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_TA, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_TA_DIR, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_CIPHER, "AES-256-CBC");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_LOCAL_IP, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_REMOTE_IP, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_PROXY_TYPE, "http");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_PROXY_SERVER, "proxy.domain.tld");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_PROXY_PORT, "3128");
+	test_item ("proxy-http-with-auth-import-data", s_vpn, NM_IPOP_KEY_HTTP_PROXY_USERNAME, "myusername");
+	test_secret ("proxy-http-with-auth-import-secrets", s_vpn, NM_IPOP_KEY_HTTP_PROXY_PASSWORD, "mypassword");
 
 	g_object_unref (connection);
 }
@@ -881,27 +881,27 @@ test_proxy_socks_import (NMVpnPluginUiInterface *plugin, const char *dir)
 	        "proxy-socks-import", "missing 'vpn' setting");
 
 	/* Data items */
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_CONNECTION_TYPE, NM_OPENVPN_CONTYPE_PASSWORD);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_TAP_DEV, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_PROTO_TCP, "yes");
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_COMP_LZO, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_RENEG_SECONDS, "0");
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE, "test.server.com");
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_PORT, "443");
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_CERT, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_KEY, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_STATIC_KEY_DIRECTION, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_TA, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_TA_DIR, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_CIPHER, "AES-256-CBC");
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_LOCAL_IP, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_REMOTE_IP, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_AUTH, NULL);
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_TYPE, "socks");
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_SERVER, "10.1.1.1");
-	test_item ("proxy-socks-import-data", s_vpn, NM_OPENVPN_KEY_PROXY_PORT, "1080");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, NM_IPOP_CONTYPE_PASSWORD);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_TAP_DEV, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_PROTO_TCP, "yes");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_COMP_LZO, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_RENEG_SECONDS, "0");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_REMOTE, "test.server.com");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_PORT, "443");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_CERT, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_KEY, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_STATIC_KEY_DIRECTION, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_TA, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_TA_DIR, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_CIPHER, "AES-256-CBC");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_LOCAL_IP, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_REMOTE_IP, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_AUTH, NULL);
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_PROXY_TYPE, "socks");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_PROXY_SERVER, "10.1.1.1");
+	test_item ("proxy-socks-import-data", s_vpn, NM_IPOP_KEY_PROXY_PORT, "1080");
 
 	g_object_unref (connection);
 }

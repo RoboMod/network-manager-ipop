@@ -1,0 +1,10 @@
+[VPN Connection]
+name=ipop
+service=org.freedesktop.NetworkManager.ipop
+program=/usr/local/lib/nm-ipop-service
+
+[GNOME]
+auth-dialog=nm-ipop-auth-dialog
+properties=libnm-ipop-properties
+supports-external-ui-mode=true
+

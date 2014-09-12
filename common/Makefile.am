@@ -1,14 +1,14 @@
 noinst_LTLIBRARIES=libnm-ipop-common.la
 
-libnm_openvpn_common_la_CPPFLAGS = \
+libnm_ipop_common_la_CPPFLAGS = \
 	$(NM_CFLAGS) \
 	-DG_DISABLE_DEPRECATED \
         -I$(top_srcdir)/src/
 
-libnm_openvpn_common_la_SOURCES= \
+libnm_ipop_common_la_SOURCES= \
 	utils.c \
 	utils.h
 
-libnm_openvpn_common_la_LIBADD = \
+libnm_ipop_common_la_LIBADD = \
 	$(NM_LIBS)
 

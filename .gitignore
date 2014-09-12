@@ -37,3 +37,5 @@ src/nm-openvpn-service
 src/nm-openvpn-service-openvpn-helper
 properties/tests/test-import-export
 
+# ide project files
+network-manager-ipop.*

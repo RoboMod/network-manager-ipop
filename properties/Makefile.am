@@ -7,9 +7,10 @@ libnm_ipop_properties_la_SOURCES = \
 	nm-ipop.c \
 	nm-ipop.h \
 	auth-helpers.c \
-	auth-helpers.h \
-	import-export.c \
-	import-export.h
+	auth-helpers.h 
+		
+#	import-export.c \
+#	import-export.h
 
 uidir = $(datadir)/gnome-vpn-properties/ipop
 ui_DATA = nm-ipop-dialog.ui

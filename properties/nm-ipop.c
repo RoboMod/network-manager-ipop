@@ -50,7 +50,7 @@
 #include "import-export.h"
 
 #define IPOP_PLUGIN_NAME    _("IPOP")
-#define IPOP_PLUGIN_DESC    _("Compatible with the IPOP server.")
+#define IPOP_PLUGIN_DESC    _("P2P connection via XMPP.")
 #define IPOP_PLUGIN_SERVICE NM_DBUS_SERVICE_IPOP 
 
 
@@ -132,29 +132,27 @@ check_validity (IPOPPluginUiWidget *self, GError **error)
 {
 	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
 	GtkWidget *widget;
-	const char *str;
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	const char *contype = NULL;
+    const char *str;
 
-	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "gateway_entry"));
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_host"));
 	str = gtk_entry_get_text (GTK_ENTRY (widget));
 	if (!str || !strlen (str)) {
 		g_set_error (error,
 		             IPOP_PLUGIN_UI_ERROR,
 		             IPOP_PLUGIN_UI_ERROR_INVALID_PROPERTY,
-		             NM_IPOP_KEY_REMOTE);
+                     NM_IPOP_KEY_XMPP_HOST);
 		return FALSE;
 	}
 
-	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "auth_combo"));
-	model = gtk_combo_box_get_model (GTK_COMBO_BOX (widget));
-	g_assert (model);
-	g_assert (gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget), &iter));
-
-	gtk_tree_model_get (model, &iter, COL_AUTH_TYPE, &contype, -1);
-	if (!auth_widget_check_validity (priv->builder, contype, error))
-		return FALSE;
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_username"));
+    str = gtk_entry_get_text (GTK_ENTRY (widget));
+    if (!str || !strlen (str)) {
+        g_set_error (error,
+                     IPOP_PLUGIN_UI_ERROR,
+                     IPOP_PLUGIN_UI_ERROR_INVALID_PROPERTY,
+                     NM_IPOP_KEY_XMPP_USERNAME);
+        return FALSE;
+    }
 
 	return TRUE;
 }
@@ -165,35 +163,35 @@ stuff_changed_cb (GtkWidget *widget, gpointer user_data)
 	g_signal_emit_by_name (IPOP_PLUGIN_UI_WIDGET (user_data), "changed");
 }
 
-static void
-auth_combo_changed_cb (GtkWidget *combo, gpointer user_data)
-{
-	IPOPPluginUiWidget *self = IPOP_PLUGIN_UI_WIDGET (user_data);
-	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
-	GtkWidget *auth_notebook;
-	GtkWidget *show_passwords;
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	gint new_page = 0;
+//static void
+//auth_combo_changed_cb (GtkWidget *combo, gpointer user_data)
+//{
+//	IPOPPluginUiWidget *self = IPOP_PLUGIN_UI_WIDGET (user_data);
+//	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
+//	GtkWidget *auth_notebook;
+//	GtkWidget *show_passwords;
+//	GtkTreeModel *model;
+//	GtkTreeIter iter;
+//	gint new_page = 0;
 
-	auth_notebook = GTK_WIDGET (gtk_builder_get_object (priv->builder, "auth_notebook"));
-	g_assert (auth_notebook);
-	show_passwords = GTK_WIDGET (gtk_builder_get_object (priv->builder, "show_passwords"));
-	g_assert (auth_notebook);
+//	auth_notebook = GTK_WIDGET (gtk_builder_get_object (priv->builder, "auth_notebook"));
+//	g_assert (auth_notebook);
+//	show_passwords = GTK_WIDGET (gtk_builder_get_object (priv->builder, "show_passwords"));
+//	g_assert (auth_notebook);
 
-	model = gtk_combo_box_get_model (GTK_COMBO_BOX (combo));
-	g_assert (model);
-	g_assert (gtk_combo_box_get_active_iter (GTK_COMBO_BOX (combo), &iter));
+//	model = gtk_combo_box_get_model (GTK_COMBO_BOX (combo));
+//	g_assert (model);
+//	g_assert (gtk_combo_box_get_active_iter (GTK_COMBO_BOX (combo), &iter));
 
-	gtk_tree_model_get (model, &iter, COL_AUTH_PAGE, &new_page, -1);
+//	gtk_tree_model_get (model, &iter, COL_AUTH_PAGE, &new_page, -1);
 
-	/* Static key page doesn't have any passwords */
-	gtk_widget_set_sensitive (show_passwords, new_page != 3);
+//	/* Static key page doesn't have any passwords */
+//	gtk_widget_set_sensitive (show_passwords, new_page != 3);
 
-	gtk_notebook_set_current_page (GTK_NOTEBOOK (auth_notebook), new_page);
+//	gtk_notebook_set_current_page (GTK_NOTEBOOK (auth_notebook), new_page);
 
-	stuff_changed_cb (combo, self);
-}
+//	stuff_changed_cb (combo, self);
+//}
 
 static void
 advanced_dialog_close_cb (GtkWidget *dialog, gpointer user_data)
@@ -269,98 +267,32 @@ init_plugin_ui (IPOPPluginUiWidget *self, NMConnection *connection, GError **err
 {
 	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
 	NMSettingVPN *s_vpn;
-	GtkWidget *widget;
-	GtkListStore *store;
-	GtkTreeIter iter;
-	int active = -1;
-	const char *value;
-	const char *contype = NM_IPOP_CONTYPE_TLS;
+    GtkWidget *widget;
+    const char *value;
 
 	s_vpn = nm_connection_get_setting_vpn (connection);
 
 	priv->group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
-	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "gateway_entry"));
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_host"));
 	g_return_val_if_fail (widget != NULL, FALSE);
 	gtk_size_group_add_widget (priv->group, widget);
 	if (s_vpn) {
-		value = nm_setting_vpn_get_data_item (s_vpn, NM_IPOP_KEY_REMOTE);
+        value = nm_setting_vpn_get_data_item (s_vpn, NM_IPOP_KEY_XMPP_HOST);
 		if (value)
 			gtk_entry_set_text (GTK_ENTRY (widget), value);
 	}
 	g_signal_connect (G_OBJECT (widget), "changed", G_CALLBACK (stuff_changed_cb), self);
 
-	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "auth_combo"));
-	g_return_val_if_fail (widget != NULL, FALSE);
-	gtk_size_group_add_widget (priv->group, widget);
-
-	store = gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_INT, G_TYPE_STRING);
-
-	if (s_vpn) {
-		contype = nm_setting_vpn_get_data_item (s_vpn, NM_IPOP_KEY_CONNECTION_TYPE);
-		if (contype) {
-			if (   strcmp (contype, NM_IPOP_CONTYPE_TLS)
-			    && strcmp (contype, NM_IPOP_CONTYPE_STATIC_KEY)
-			    && strcmp (contype, NM_IPOP_CONTYPE_PASSWORD)
-			    && strcmp (contype, NM_IPOP_CONTYPE_PASSWORD_TLS))
-				contype = NM_IPOP_CONTYPE_TLS;
-		} else
-			contype = NM_IPOP_CONTYPE_TLS;
-	}
-
-	/* TLS auth widget */
-	tls_pw_init_auth_widget (priv->builder, priv->group, s_vpn,
-	                         NM_IPOP_CONTYPE_TLS, "tls",
-	                         stuff_changed_cb, self);
-	gtk_list_store_append (store, &iter);
-	gtk_list_store_set (store, &iter,
-	                    COL_AUTH_NAME, _("Certificates (TLS)"),
-	                    COL_AUTH_PAGE, 0,
-	                    COL_AUTH_TYPE, NM_IPOP_CONTYPE_TLS,
-	                    -1);
-
-	/* Password auth widget */
-	tls_pw_init_auth_widget (priv->builder, priv->group, s_vpn,
-	                         NM_IPOP_CONTYPE_PASSWORD, "pw",
-	                         stuff_changed_cb, self);
-	gtk_list_store_append (store, &iter);
-	gtk_list_store_set (store, &iter,
-	                    COL_AUTH_NAME, _("Password"),
-	                    COL_AUTH_PAGE, 1,
-	                    COL_AUTH_TYPE, NM_IPOP_CONTYPE_PASSWORD,
-	                    -1);
-	if ((active < 0) && !strcmp (contype, NM_IPOP_CONTYPE_PASSWORD))
-		active = 1;
-
-	/* Password+TLS auth widget */
-	tls_pw_init_auth_widget (priv->builder, priv->group, s_vpn,
-	                         NM_IPOP_CONTYPE_PASSWORD_TLS, "pw_tls",
-	                         stuff_changed_cb, self);
-	gtk_list_store_append (store, &iter);
-	gtk_list_store_set (store, &iter,
-	                    COL_AUTH_NAME, _("Password with Certificates (TLS)"),
-	                    COL_AUTH_PAGE, 2,
-	                    COL_AUTH_TYPE, NM_IPOP_CONTYPE_PASSWORD_TLS,
-	                    -1);
-	if ((active < 0) && !strcmp (contype, NM_IPOP_CONTYPE_PASSWORD_TLS))
-		active = 2;
-
-	/* Static key auth widget */
-	sk_init_auth_widget (priv->builder, priv->group, s_vpn, stuff_changed_cb, self);
-
-	gtk_list_store_append (store, &iter);
-	gtk_list_store_set (store, &iter,
-	                    COL_AUTH_NAME, _("Static Key"),
-	                    COL_AUTH_PAGE, 3,
-	                    COL_AUTH_TYPE, NM_IPOP_CONTYPE_STATIC_KEY,
-	                    -1);
-	if ((active < 0) && !strcmp (contype, NM_IPOP_CONTYPE_STATIC_KEY))
-		active = 3;
-
-	gtk_combo_box_set_model (GTK_COMBO_BOX (widget), GTK_TREE_MODEL (store));
-	g_object_unref (store);
-	g_signal_connect (widget, "changed", G_CALLBACK (auth_combo_changed_cb), self);
-	gtk_combo_box_set_active (GTK_COMBO_BOX (widget), active < 0 ? 0 : active);
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_username"));
+    g_return_val_if_fail (widget != NULL, FALSE);
+    gtk_size_group_add_widget (priv->group, widget);
+    if (s_vpn) {
+        value = nm_setting_vpn_get_data_item (s_vpn, NM_IPOP_KEY_XMPP_USERNAME);
+        if (value)
+            gtk_entry_set_text (GTK_ENTRY (widget), value);
+    }
+    g_signal_connect (G_OBJECT (widget), "changed", G_CALLBACK (stuff_changed_cb), self);
 
 	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "advanced_button"));
 	g_signal_connect (G_OBJECT (widget), "clicked", G_CALLBACK (advanced_button_clicked_cb), self);
@@ -386,30 +318,30 @@ hash_copy_advanced (gpointer key, gpointer data, gpointer user_data)
 	g_return_if_fail (value && strlen (value));
 
 	/* HTTP Proxy password is a secret, not a data item */
-	if (!strcmp (key, NM_IPOP_KEY_HTTP_PROXY_PASSWORD))
+    if (!strcmp (key, NM_IPOP_KEY_XMPP_PASSWORD))
 		nm_setting_vpn_add_secret (s_vpn, (const char *) key, value);
 	else
 		nm_setting_vpn_add_data_item (s_vpn, (const char *) key, value);
 }
 
-static char *
-get_auth_type (GtkBuilder *builder)
-{
-	GtkComboBox *combo;
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	char *auth_type = NULL;
-	gboolean success;
+//static char *
+//get_auth_type (GtkBuilder *builder)
+//{
+//	GtkComboBox *combo;
+//	GtkTreeModel *model;
+//	GtkTreeIter iter;
+//	char *auth_type = NULL;
+//	gboolean success;
 
-	combo = GTK_COMBO_BOX (GTK_WIDGET (gtk_builder_get_object (builder, "auth_combo")));
-	model = gtk_combo_box_get_model (combo);
+//	combo = GTK_COMBO_BOX (GTK_WIDGET (gtk_builder_get_object (builder, "auth_combo")));
+//	model = gtk_combo_box_get_model (combo);
 
-	success = gtk_combo_box_get_active_iter (combo, &iter);
-	g_return_val_if_fail (success == TRUE, NULL);
-	gtk_tree_model_get (model, &iter, COL_AUTH_TYPE, &auth_type, -1);
+//	success = gtk_combo_box_get_active_iter (combo, &iter);
+//	g_return_val_if_fail (success == TRUE, NULL);
+//	gtk_tree_model_get (model, &iter, COL_AUTH_TYPE, &auth_type, -1);
 
-	return auth_type;
-}
+//	return auth_type;
+//}
 
 static gboolean
 update_connection (NMVpnPluginUiWidgetInterface *iface,
@@ -420,7 +352,7 @@ update_connection (NMVpnPluginUiWidgetInterface *iface,
 	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
 	NMSettingVPN *s_vpn;
 	GtkWidget *widget;
-	char *str, *auth_type;
+    char *str;
 	gboolean valid = FALSE;
 
 	if (!check_validity (self, error))
@@ -430,40 +362,24 @@ update_connection (NMVpnPluginUiWidgetInterface *iface,
 	g_object_set (s_vpn, NM_SETTING_VPN_SERVICE_TYPE, NM_DBUS_SERVICE_IPOP, NULL);
 
 	/* Gateway */
-	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "gateway_entry"));
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_host"));
 	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
 	if (str && strlen (str))
-		nm_setting_vpn_add_data_item (s_vpn, NM_IPOP_KEY_REMOTE, str);
+        nm_setting_vpn_add_data_item (s_vpn, NM_IPOP_KEY_XMPP_HOST, str);
 
-	auth_type = get_auth_type (priv->builder);
-	if (auth_type) {
-		nm_setting_vpn_add_data_item (s_vpn, NM_IPOP_KEY_CONNECTION_TYPE, auth_type);
-		auth_widget_update_connection (priv->builder, auth_type, s_vpn);
-		g_free (auth_type);
-	}
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_username"));
+    str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+    if (str && strlen (str))
+        nm_setting_vpn_add_data_item (s_vpn, NM_IPOP_KEY_XMPP_USERNAME, str);
 
 	if (priv->advanced)
 		g_hash_table_foreach (priv->advanced, hash_copy_advanced, s_vpn);
 
 	/* Default to agent-owned secrets for new connections */
-	if (priv->new_connection) {
-		if (nm_setting_vpn_get_secret (s_vpn, NM_IPOP_KEY_HTTP_PROXY_PASSWORD)) {
+    if (priv->new_connection) {
+        if (nm_setting_vpn_get_secret (s_vpn, NM_IPOP_KEY_XMPP_PASSWORD)) {
 			nm_setting_set_secret_flags (NM_SETTING (s_vpn),
-			                             NM_IPOP_KEY_HTTP_PROXY_PASSWORD,
-			                             NM_SETTING_SECRET_FLAG_AGENT_OWNED,
-			                             NULL);
-		}
-
-		if (nm_setting_vpn_get_secret (s_vpn, NM_IPOP_KEY_PASSWORD)) {
-			nm_setting_set_secret_flags (NM_SETTING (s_vpn),
-			                             NM_IPOP_KEY_PASSWORD,
-			                             NM_SETTING_SECRET_FLAG_AGENT_OWNED,
-			                             NULL);
-		}
-
-		if (nm_setting_vpn_get_secret (s_vpn, NM_IPOP_KEY_CERTPASS)) {
-			nm_setting_set_secret_flags (NM_SETTING (s_vpn),
-			                             NM_IPOP_KEY_CERTPASS,
+                                         NM_IPOP_KEY_XMPP_PASSWORD,
 			                             NM_SETTING_SECRET_FLAG_AGENT_OWNED,
 			                             NULL);
 		}
