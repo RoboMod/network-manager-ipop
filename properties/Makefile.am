@@ -1,4 +1,4 @@
-SUBDIRS = . tests
+#SUBDIRS = . tests
 
 plugindir = $(libdir)/NetworkManager
 plugin_LTLIBRARIES = libnm-ipop-properties.la

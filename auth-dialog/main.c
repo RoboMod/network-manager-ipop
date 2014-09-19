@@ -256,7 +256,6 @@ main (int argc, char *argv[])
             { NULL }
         };
 
-    if(FALSE) {
     bindtextdomain (GETTEXT_PACKAGE, NULL);
     bind_textdomain_codeset (GETTEXT_PACKAGE, "UTF-8");
     textdomain (GETTEXT_PACKAGE);
@@ -331,6 +330,6 @@ main (int argc, char *argv[])
         g_hash_table_unref (data);
     if (secrets)
         g_hash_table_unref (secrets);
-    }
+
     return 0;
 }

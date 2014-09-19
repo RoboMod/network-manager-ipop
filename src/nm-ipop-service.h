@@ -58,6 +58,5 @@ GType nm_ipop_plugin_get_type (void);
 NMIPOPPlugin *nm_ipop_plugin_new (void);
 
 gboolean handle_options (int argc, char *argv[]);
-//void check_need_secrets(NMSettingVPN *s_vpn, gboolean *need_secrets);
 
 #endif /* NM_IPOP_SERVICE_H */

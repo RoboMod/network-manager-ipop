@@ -30,6 +30,14 @@
 
 typedef void (*ChangedCallback) (GtkWidget *widget, gpointer user_data);
 
+void init_one_pw_combo (GtkBuilder *builder,
+                   NMSettingVPN *s_vpn,
+                   const char *prefix,
+                   const char *secret_key,
+                   GtkWidget *entry_widget,
+                   ChangedCallback changed_cb,
+                   gpointer user_data);
+
 void tls_pw_init_auth_widget (GtkBuilder *builder,
                               GtkSizeGroup *group,
                               NMSettingVPN *s_vpn,

@@ -1,7 +1,7 @@
 [VPN Connection]
 name=ipop
 service=org.freedesktop.NetworkManager.ipop
-program=/usr/local/lib/nm-ipop-service
+program=/usr/lib/nm-ipop-service
 
 [GNOME]
 auth-dialog=nm-ipop-auth-dialog

@@ -193,74 +193,74 @@ stuff_changed_cb (GtkWidget *widget, gpointer user_data)
 //	stuff_changed_cb (combo, self);
 //}
 
-static void
-advanced_dialog_close_cb (GtkWidget *dialog, gpointer user_data)
-{
-	gtk_widget_hide (dialog);
-	/* gtk_widget_destroy() will remove the window from the window group */
-	gtk_widget_destroy (dialog);
-}
+//static void
+//advanced_dialog_close_cb (GtkWidget *dialog, gpointer user_data)
+//{
+//	gtk_widget_hide (dialog);
+//	/* gtk_widget_destroy() will remove the window from the window group */
+//	gtk_widget_destroy (dialog);
+//}
 
-static void
-advanced_dialog_response_cb (GtkWidget *dialog, gint response, gpointer user_data)
-{
-	IPOPPluginUiWidget *self = IPOP_PLUGIN_UI_WIDGET (user_data);
-	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
-	GError *error = NULL;
+//static void
+//advanced_dialog_response_cb (GtkWidget *dialog, gint response, gpointer user_data)
+//{
+//	IPOPPluginUiWidget *self = IPOP_PLUGIN_UI_WIDGET (user_data);
+//	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
+//	GError *error = NULL;
 
-	if (response != GTK_RESPONSE_OK) {
-		advanced_dialog_close_cb (dialog, self);
-		return;
-	}
+//	if (response != GTK_RESPONSE_OK) {
+//		advanced_dialog_close_cb (dialog, self);
+//		return;
+//	}
 
-	if (priv->advanced)
-		g_hash_table_destroy (priv->advanced);
-	priv->advanced = advanced_dialog_new_hash_from_dialog (dialog, &error);
-	if (!priv->advanced) {
-		g_message ("%s: error reading advanced settings: %s", __func__, error->message);
-		g_error_free (error);
-	}
-	advanced_dialog_close_cb (dialog, self);
+//	if (priv->advanced)
+//		g_hash_table_destroy (priv->advanced);
+//	priv->advanced = advanced_dialog_new_hash_from_dialog (dialog, &error);
+//	if (!priv->advanced) {
+//		g_message ("%s: error reading advanced settings: %s", __func__, error->message);
+//		g_error_free (error);
+//	}
+//	advanced_dialog_close_cb (dialog, self);
 
-	stuff_changed_cb (NULL, self);
-}
+//	stuff_changed_cb (NULL, self);
+//}
 
-static void
-advanced_button_clicked_cb (GtkWidget *button, gpointer user_data)
-{
-	IPOPPluginUiWidget *self = IPOP_PLUGIN_UI_WIDGET (user_data);
-	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
-	GtkWidget *dialog, *toplevel, *widget;
-	GtkTreeModel *model;
-	GtkTreeIter iter;
-	const char *contype = NULL;
+//static void
+//advanced_button_clicked_cb (GtkWidget *button, gpointer user_data)
+//{
+//	IPOPPluginUiWidget *self = IPOP_PLUGIN_UI_WIDGET (user_data);
+//	IPOPPluginUiWidgetPrivate *priv = IPOP_PLUGIN_UI_WIDGET_GET_PRIVATE (self);
+//	GtkWidget *dialog, *toplevel, *widget;
+//	GtkTreeModel *model;
+//	GtkTreeIter iter;
+//	const char *contype = NULL;
 
-	toplevel = gtk_widget_get_toplevel (priv->widget);
-	g_return_if_fail (gtk_widget_is_toplevel (toplevel));
+//	toplevel = gtk_widget_get_toplevel (priv->widget);
+//	g_return_if_fail (gtk_widget_is_toplevel (toplevel));
 
-	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "auth_combo"));
-	model = gtk_combo_box_get_model (GTK_COMBO_BOX (widget));
-	if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget), &iter))
-		gtk_tree_model_get (model, &iter, COL_AUTH_TYPE, &contype, -1);
+//	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "auth_combo"));
+//	model = gtk_combo_box_get_model (GTK_COMBO_BOX (widget));
+//	if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX (widget), &iter))
+//		gtk_tree_model_get (model, &iter, COL_AUTH_TYPE, &contype, -1);
 
-	dialog = advanced_dialog_new (priv->advanced, contype);
-	if (!dialog) {
-		g_warning ("%s: failed to create the Advanced dialog!", __func__);
-		return;
-	}
+//	dialog = advanced_dialog_new (priv->advanced, contype);
+//	if (!dialog) {
+//		g_warning ("%s: failed to create the Advanced dialog!", __func__);
+//		return;
+//	}
 
-	gtk_window_group_add_window (priv->window_group, GTK_WINDOW (dialog));
-	if (!priv->window_added) {
-		gtk_window_group_add_window (priv->window_group, GTK_WINDOW (toplevel));
-		priv->window_added = TRUE;
-	}
+//	gtk_window_group_add_window (priv->window_group, GTK_WINDOW (dialog));
+//	if (!priv->window_added) {
+//		gtk_window_group_add_window (priv->window_group, GTK_WINDOW (toplevel));
+//		priv->window_added = TRUE;
+//	}
 
-	gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (toplevel));
-	g_signal_connect (G_OBJECT (dialog), "response", G_CALLBACK (advanced_dialog_response_cb), self);
-	g_signal_connect (G_OBJECT (dialog), "close", G_CALLBACK (advanced_dialog_close_cb), self);
+//	gtk_window_set_transient_for (GTK_WINDOW (dialog), GTK_WINDOW (toplevel));
+//	g_signal_connect (G_OBJECT (dialog), "response", G_CALLBACK (advanced_dialog_response_cb), self);
+//	g_signal_connect (G_OBJECT (dialog), "close", G_CALLBACK (advanced_dialog_close_cb), self);
 
-	gtk_widget_show_all (dialog);
-}
+//	gtk_widget_show_all (dialog);
+//}
 
 static gboolean
 init_plugin_ui (IPOPPluginUiWidget *self, NMConnection *connection, GError **error)
@@ -294,8 +294,18 @@ init_plugin_ui (IPOPPluginUiWidget *self, NMConnection *connection, GError **err
     }
     g_signal_connect (G_OBJECT (widget), "changed", G_CALLBACK (stuff_changed_cb), self);
 
-	widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "advanced_button"));
-	g_signal_connect (G_OBJECT (widget), "clicked", G_CALLBACK (advanced_button_clicked_cb), self);
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_password"));
+    g_return_val_if_fail (widget != NULL, FALSE);
+    gtk_size_group_add_widget (priv->group, widget);
+    if (s_vpn) {
+        value = nm_setting_vpn_get_secret (s_vpn, NM_IPOP_KEY_XMPP_PASSWORD);
+        if (value)
+            gtk_entry_set_text (GTK_ENTRY (widget), value);
+    }
+    g_signal_connect (G_OBJECT (widget), "changed", G_CALLBACK (stuff_changed_cb), self);
+
+    init_one_pw_combo(priv->builder, s_vpn, "xmpp", NM_IPOP_KEY_XMPP_PASSWORD, widget,
+                      stuff_changed_cb, self);
 
 	return TRUE;
 }
@@ -309,20 +319,20 @@ get_widget (NMVpnPluginUiWidgetInterface *iface)
 	return G_OBJECT (priv->widget);
 }
 
-static void
-hash_copy_advanced (gpointer key, gpointer data, gpointer user_data)
-{
-	NMSettingVPN *s_vpn = NM_SETTING_VPN (user_data);
-	const char *value = (const char *) data;
+//static void
+//hash_copy_advanced (gpointer key, gpointer data, gpointer user_data)
+//{
+//	NMSettingVPN *s_vpn = NM_SETTING_VPN (user_data);
+//	const char *value = (const char *) data;
 
-	g_return_if_fail (value && strlen (value));
+//	g_return_if_fail (value && strlen (value));
 
-	/* HTTP Proxy password is a secret, not a data item */
-    if (!strcmp (key, NM_IPOP_KEY_XMPP_PASSWORD))
-		nm_setting_vpn_add_secret (s_vpn, (const char *) key, value);
-	else
-		nm_setting_vpn_add_data_item (s_vpn, (const char *) key, value);
-}
+//    /* xmpp password is a secret, not a data item */
+//    if (!strcmp (key, NM_IPOP_KEY_XMPP_PASSWORD))
+//		nm_setting_vpn_add_secret (s_vpn, (const char *) key, value);
+//	else
+//		nm_setting_vpn_add_data_item (s_vpn, (const char *) key, value);
+//}
 
 //static char *
 //get_auth_type (GtkBuilder *builder)
@@ -361,19 +371,23 @@ update_connection (NMVpnPluginUiWidgetInterface *iface,
 	s_vpn = NM_SETTING_VPN (nm_setting_vpn_new ());
 	g_object_set (s_vpn, NM_SETTING_VPN_SERVICE_TYPE, NM_DBUS_SERVICE_IPOP, NULL);
 
-	/* Gateway */
+    /* xmpp host */
     widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_host"));
 	str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
 	if (str && strlen (str))
         nm_setting_vpn_add_data_item (s_vpn, NM_IPOP_KEY_XMPP_HOST, str);
 
+    /* xmpp username */
     widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_username"));
     str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
     if (str && strlen (str))
         nm_setting_vpn_add_data_item (s_vpn, NM_IPOP_KEY_XMPP_USERNAME, str);
 
-	if (priv->advanced)
-		g_hash_table_foreach (priv->advanced, hash_copy_advanced, s_vpn);
+    /* xmpp password */
+    widget = GTK_WIDGET (gtk_builder_get_object (priv->builder, "xmpp_password"));
+    str = (char *) gtk_entry_get_text (GTK_ENTRY (widget));
+    if (str && strlen (str))
+        nm_setting_vpn_add_secret (s_vpn, NM_IPOP_KEY_XMPP_PASSWORD, str);
 
 	/* Default to agent-owned secrets for new connections */
     if (priv->new_connection) {
@@ -454,12 +468,6 @@ nm_vpn_plugin_ui_widget_interface_new (NMConnection *connection, GError **error)
 	priv->new_connection = new;
 
 	if (!init_plugin_ui (IPOP_PLUGIN_UI_WIDGET (object), connection, error)) {
-		g_object_unref (object);
-		return NULL;
-	}
-
-	priv->advanced = advanced_dialog_new_hash_from_connection (connection, error);
-	if (!priv->advanced) {
 		g_object_unref (object);
 		return NULL;
 	}
