@@ -27,6 +27,8 @@
 #endif
 
 #include <glib/gi18n.h>
+#include <gio/gio.h>
+#include <json-glib/json-glib.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
 #include <dbus/dbus-glib.h>
@@ -64,13 +66,14 @@ G_DEFINE_TYPE(NMIPOPPlugin, nm_ipop_plugin, NM_TYPE_VPN_PLUGIN)
 
 #define NM_IPOP_PLUGIN_GET_PRIVATE(o) (G_TYPE_INSTANCE_GET_PRIVATE ((o), NM_TYPE_IPOP_PLUGIN, NMIPOPPluginPrivate))
 
+#define NM_IPOP_SVPN_MAX_CONNECT_COUNT 30
+
 /**
  * data needed to setup connection via svpn_controller.py
  */
 typedef struct {
-    char *xmpp_host;
-    char *xmpp_username;
-    char *xmpp_password;
+    char* ip4;
+    char* ip6;
 } NMIPOPPluginIOData;
 
 /**
@@ -79,7 +82,8 @@ typedef struct {
 typedef struct {
     GPid ipop_pid;
     GPid svpn_pid;
-    GIOChannel* svpn_in_channel;
+    //GIOChannel* svpn_socket_channel;
+    //guint svpn_socket_channel_eventid;
     guint connect_timer;
     guint connect_count;
     NMIPOPPluginIOData *io_data;
@@ -285,283 +289,118 @@ static gboolean nm_ipop_validate_secrets(NMSettingVPN *s_vpn, GError **error) {
 	return TRUE;
 }
 
-//static void
-//nm_ipop_disconnect_management_socket (NMIPOPPlugin *plugin)
-//{
-//	NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE (plugin);
-//	NMIPOPPluginIOData *io_data = priv->io_data;
 
-//	/* This should not throw a warning since this can happen in
-//	   non-password modes */
-//	if (!io_data)
-//		return;
+static char* nm_ipop_svpn_socket_request(NMIPOPPlugin *plugin, GIOChannel* socket_channel, char* request) {
+    GString* response;
+    gchar* tmp;
+    gsize size;
+    int i;
 
-//	if (io_data->socket_channel_eventid)
-//		g_source_remove (io_data->socket_channel_eventid);
-//	if (io_data->socket_channel) {
-//		g_io_channel_shutdown (io_data->socket_channel, FALSE, NULL);
-//		g_io_channel_unref (io_data->socket_channel);
-//	}
+    response = g_string_new(NULL);
 
-//	g_free (io_data->username);
-//	g_free (io_data->proxy_username);
+    // write request to socket channel
+    g_io_channel_write_chars(socket_channel, request, strlen(request), NULL, NULL);
+    g_io_channel_flush(socket_channel, NULL);
 
-//	if (io_data->password)
-//		memset (io_data->password, 0, strlen (io_data->password));
-//	g_free (io_data->password);
-
-//	if (io_data->priv_key_pass)
-//		memset (io_data->priv_key_pass, 0, strlen (io_data->priv_key_pass));
-//	g_free (io_data->priv_key_pass);
-
-//	if (io_data->proxy_password)
-//		memset (io_data->proxy_password, 0, strlen (io_data->proxy_password));
-//	g_free (io_data->proxy_password);
-
-//	g_free (priv->io_data);
-//	priv->io_data = NULL;
-//}
-
-//static char *
-//ovpn_quote_string (const char *unquoted)
-//{
-//	char *quoted = NULL, *q;
-//	char *u = (char *) unquoted;
-
-//	g_return_val_if_fail (unquoted != NULL, NULL);
-
-//	/* FIXME: use unpaged memory */
-//	quoted = q = g_malloc0 (strlen (unquoted) * 2);
-//	while (*u) {
-//		/* Escape certain characters */
-//		if (*u == ' ' || *u == '\\' || *u == '"')
-//			*q++ = '\\';
-//		*q++ = *u++;
-//	}
-
-//	return quoted;
-//}
-
-///* sscanf is evil, and since we can't use glib regexp stuff since it's still
-// * too new for some distros, do a simple match here.
-// */
-//static char *
-//get_detail (const char *input, const char *prefix)
-//{
-//	char *ret = NULL;
-//	guint32 i = 0;
-//	const char *p, *start;
-
-//	g_return_val_if_fail (prefix != NULL, NULL);
-
-//	if (!g_str_has_prefix (input, prefix))
-//		return NULL;
-
-//	/* Grab characters until the next ' */
-//	p = start = input + strlen (prefix);
-//	while (*p) {
-//		if (*p == '\'') {
-//			ret = g_malloc0 (i + 1);
-//			strncpy (ret, start, i);
-//			break;
-//		}
-//		p++, i++;
-//	}
-
-//	return ret;
-//}
-
-//static void
-//write_user_pass (GIOChannel *channel,
-//                 const char *authtype,
-//                 const char *user,
-//                 const char *pass)
-//{
-//	char *quser, *qpass, *buf;
-
-//	/* Quote strings passed back to ipop */
-//	quser = ovpn_quote_string (user);
-//	qpass = ovpn_quote_string (pass);
-//	buf = g_strdup_printf ("username \"%s\" \"%s\"\n"
-//	                       "password \"%s\" \"%s\"\n",
-//	                       authtype, quser,
-//	                       authtype, qpass);
-//	memset (qpass, 0, strlen (qpass));
-//	g_free (qpass);
-//	g_free (quser);
-
-//	/* Will always write everything in blocking channels (on success) */
-//	g_io_channel_write_chars (channel, buf, strlen (buf), NULL, NULL);
-//	g_io_channel_flush (channel, NULL);
-
-//	memset (buf, 0, strlen (buf));
-//	g_free (buf);
-//}
-
-//static gboolean
-//handle_management_socket (NMVPNPlugin *plugin,
-//                          GIOChannel *source,
-//                          GIOCondition condition,
-//                          NMVPNPluginFailure *out_failure)
-//{
-//	NMIPOPPluginIOData *io_data = NM_IPOP_PLUGIN_GET_PRIVATE (plugin)->io_data;
-//	gboolean again = TRUE;
-//	char *str = NULL, *auth = NULL, *buf;
-
-//	if (!(condition & G_IO_IN))
-//		return TRUE;
-
-//	if (g_io_channel_read_line (source, &str, NULL, NULL, NULL) != G_IO_STATUS_NORMAL)
-//		return TRUE;
-
-//	if (strlen (str) < 1)
-//		goto out;
-
-//	auth = get_detail (str, ">PASSWORD:Need '");
-//	if (auth) {
-//		if (strcmp (auth, "Auth") == 0) {
-//			if (io_data->username != NULL && io_data->password != NULL)
-//				write_user_pass (source, auth, io_data->username, io_data->password);
-//			else
-//				g_warning ("Auth requested but one of username or password is missing");
-//		} else if (!strcmp (auth, "Private Key")) {
-//			if (io_data->priv_key_pass) {
-//				char *qpass;
-
-//				/* Quote strings passed back to ipop */
-//				qpass = ovpn_quote_string (io_data->priv_key_pass);
-//				buf = g_strdup_printf ("password \"%s\" \"%s\"\n", auth, qpass);
-//				memset (qpass, 0, strlen (qpass));
-//				g_free (qpass);
-
-//				/* Will always write everything in blocking channels (on success) */
-//				g_io_channel_write_chars (source, buf, strlen (buf), NULL, NULL);
-//				g_io_channel_flush (source, NULL);
-//				g_free (buf);
-//			} else
-//				g_warning ("Certificate password requested but private key password == NULL");
-//		} else if (strcmp (auth, "HTTP Proxy") == 0) {
-//			if (io_data->proxy_username != NULL && io_data->proxy_password != NULL)
-//				write_user_pass (source, auth, io_data->proxy_username, io_data->proxy_password);
-//			else
-//				g_warning ("HTTP Proxy auth requested but either proxy username or password is missing");
-//		} else {
-//			g_warning ("No clue what to send for username/password request for '%s'", auth);
-//			if (out_failure)
-//				*out_failure = NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED;
-//			again = FALSE;
-//		}
-//		g_free (auth);
-//	}
-
-//	auth = get_detail (str, ">PASSWORD:Verification Failed: '");
-//	if (auth) {
-//		if (!strcmp (auth, "Auth"))
-//			g_warning ("Password verification failed");
-//		else if (!strcmp (auth, "Private Key"))
-//			g_warning ("Private key verification failed");
-//		else
-//			g_warning ("Unknown verification failed: %s", auth);
-
-//		g_free (auth);
-
-//		if (out_failure)
-//			*out_failure = NM_VPN_PLUGIN_FAILURE_LOGIN_FAILED;
-//		again = FALSE;
-//	}
-
-//out:
-//	g_free (str);
-//	return again;
-//}
-
-//static gboolean
-//nm_ipop_socket_data_cb (GIOChannel *source, GIOCondition condition, gpointer user_data)
-//{
-//	NMVPNPlugin *plugin = NM_VPN_PLUGIN (user_data);
-//	NMVPNPluginFailure failure = NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED;
-
-//	if (!handle_management_socket (plugin, source, condition, &failure)) {
-//		nm_vpn_plugin_failure (plugin, failure);
-//		nm_vpn_plugin_set_state (plugin, NM_VPN_SERVICE_STATE_STOPPED);
-//		return FALSE;
-//	}
-
-//	return TRUE;
-//}
-
-/**
- * @brief str_to_gvalue
- * @param str
- * @param try_convert
- * @return
- */
-static GValue* str_to_gvalue(const char *str, gboolean try_convert) {
-    GValue *val;
-
-    /* Empty */
-    if (!str || strlen (str) < 1)
-        return NULL;
-
-    if (!g_utf8_validate (str, -1, NULL)) {
-        if (try_convert && !(str = g_convert (str, -1, "ISO-8859-1", "UTF-8", NULL, NULL, NULL)))
-            str = g_convert (str, -1, "C", "UTF-8", NULL, NULL, NULL);
-
-        if (!str)
-            /* Invalid */
-            return NULL;
+    // wait for first line to read
+    g_io_channel_read_line(socket_channel, &tmp, &size, NULL, NULL);
+    i = 0;
+    while(i < 5 && !tmp && !strlen(tmp)) {
+        usleep(200);
+        g_io_channel_read_line(socket_channel, &tmp, &size, NULL, NULL);
+        i++;
     }
-    val = g_slice_new0 (GValue);
-    g_value_init (val, G_TYPE_STRING);
-    g_value_set_string (val, str);
+    // exit if threshold reached
+    if (i >= 5) return NULL;
 
-    return val;
-}
+    // append lines till "}" reached
+    i = 0;
+    while(i < 50 && tmp && strlen(tmp) && !g_str_has_prefix(tmp, "}")) {
+        // append to string
+        g_string_append(response, g_strstrip(tmp));
 
-/**
- * @brief addr_to_gvalue
- * @param str
- * @return
- */
-static GValue* addr_to_gvalue(const char *str) {
-    struct in_addr	temp_addr;
-    GValue *val;
+        g_io_channel_read_line(socket_channel, &tmp, &size, NULL, NULL);
+        i++;
+    }
+    // exit if threshold reached
+    if (i >= 50) return NULL;
 
-    /* Empty */
-    if (!str || strlen (str) < 1)
-        return NULL;
+    // append last line if "}" reached
+    if (tmp && strlen(tmp) && g_str_has_prefix(tmp, "}")) {
+        g_string_append(response, g_strstrip(tmp));
+    }
 
-    if (inet_pton (AF_INET, str, &temp_addr) <= 0)
-        return NULL;
-
-    val = g_slice_new0 (GValue);
-    g_value_init (val, G_TYPE_UINT);
-    g_value_set_uint (val, temp_addr.s_addr);
-
-    return val;
-}
-
-/**
- * @brief bool_to_gvalue
- * @param b
- * @return
- */
-static GValue* bool_to_gvalue(gboolean b) {
-    GValue *val;
-    val = g_slice_new0 (GValue);
-    g_value_init (val, G_TYPE_BOOLEAN);
-    g_value_set_boolean (val, b);
-    return val;
+    if (debug) g_message("response: %s", response->str);
+    return response->str;
 }
 
 /**
  * @brief send_config_to_nm
- * @param connection
- * @param config
- * @param ip4config
+ * @param plugin
+ * @return
  */
-static void send_config_to_nm(DBusGConnection *connection, GHashTable *config, GHashTable *ip4config) {
+static gboolean send_config_to_nm(NMIPOPPlugin* plugin) {
+    NMIPOPPluginPrivate* priv = NM_IPOP_PLUGIN_GET_PRIVATE(plugin);
     DBusGProxy *proxy;
+    DBusGConnection *connection;
+    GHashTable *config, *ip4config, *ip6config;
+    char *tmp;
+    GValue *val;
+    GError *err = NULL;
+
+    // really needed?
+    g_type_init ();
+
+    // connect to dbus system
+    connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &err);
+    if (!connection) {
+        g_warning ("Could not get the system bus: %s", err->message);
+        exit (1);
+    }
+
+    // start data tables
+    config      = g_hash_table_new(g_str_hash, g_str_equal);
+    ip4config   = g_hash_table_new(g_str_hash, g_str_equal);
+    ip6config   = g_hash_table_new(g_str_hash, g_str_equal);
+
+    tmp = "ipop"; ///sys/device/virtual/net/ipop";
+    val = str_to_gvalue(tmp, FALSE);
+    g_hash_table_insert(config, NM_VPN_PLUGIN_CONFIG_TUNDEV, val);
+    g_hash_table_insert(config, NM_VPN_PLUGIN_CONFIG_HAS_IP4, bool_to_gvalue (TRUE));
+    g_hash_table_insert(config, NM_VPN_PLUGIN_CONFIG_HAS_IP6, bool_to_gvalue (TRUE));
+
+    // Internal VPN subnet gateway
+    val = addr_to_gvalue(priv->io_data->ip4);
+    if (val)
+        g_hash_table_insert(ip4config, NM_VPN_PLUGIN_IP4_CONFIG_PTP, val);
+
+    val = addr_to_gvalue(priv->io_data->ip6);
+    if (val)
+        g_hash_table_insert(ip6config, NM_VPN_PLUGIN_IP6_CONFIG_PTP, val);
+
+    // VPN device
+    tmp = "/sys/device/virtual/net/ipop";
+    g_message("device tmp: %s", tmp);
+    val = str_to_gvalue (tmp, FALSE);
+    if (val)
+        g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_TUNDEV, val);
+
+    // IP address
+    val = addr_to_gvalue(priv->io_data->ip4);
+    if (val)
+        g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_ADDRESS, val);
+    val = addr_to_gvalue(priv->io_data->ip6);
+    if (val)
+        g_hash_table_insert (ip6config, NM_VPN_PLUGIN_IP6_CONFIG_ADDRESS, val);
+
+    // netmask
+    val = g_slice_new0 (GValue);
+    g_value_init (val, G_TYPE_UINT);
+    g_value_set_uint (val, 24);
+    g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);
+
+    // prevent from getting default route
+    g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT, bool_to_gvalue (TRUE));
 
     // setup dbus proxy
     proxy = dbus_g_proxy_new_for_name (connection,
@@ -583,168 +422,143 @@ static void send_config_to_nm(DBusGConnection *connection, GHashTable *config, G
                     G_TYPE_INVALID,
                     G_TYPE_INVALID);
 
+    // send ip6 config
+    dbus_g_proxy_call_no_reply (proxy, "SetIp6Config",
+                    dbus_g_type_get_map ("GHashTable", G_TYPE_STRING, G_TYPE_VALUE),
+                    ip6config,
+                    G_TYPE_INVALID,
+                    G_TYPE_INVALID);
+
     g_object_unref (proxy);
+
+    return TRUE;
 }
 
 static gboolean nm_ipop_connect_timer_cb(gpointer data) {
-    //NMIPOPPlugin *plugin = NM_IPOP_PLUGIN(data);
-    //NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE (plugin);
-    //struct sockaddr_in     serv_addr;
-    //gboolean               connected = FALSE;
-    //gint                   socket_fd = -1;
-    //NMIPOPPluginIOData *io_data = priv->io_data;
+    NMIPOPPlugin *plugin = NM_IPOP_PLUGIN(data);
+    NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE(plugin);
 
-    //GPid pid;
-    //GPtrArray *controller_args;
+    struct sockaddr_in     serv_addr;
+    gint                   socket_fd = -1;
 
-//	priv->connect_count++;
+    // setup io channel to svpn_controller on 127.0.0.1:5800
+    // needed to get information about connection
 
-    DBusGConnection *connection;
-    GHashTable *config, *ip4config;
-    char *tmp;
-    GValue *val;
-    //int i;
-    GError *err = NULL;
-    //GValue *dns_list = NULL;
-    //GValue *nbns_list = NULL;
-    //GValue *dns_domain = NULL;
-    //struct in_addr temp_addr;
-    //gboolean tapdev = FALSE;
-    //char **iter;
+    // one way to get socket paket data from installed ipoplib.py
+    //python -c "import imp; ipoplib = imp.load_source('ipoplib', '/usr/sbin/ipop/ipoplib.py'); print ipoplib.ipop_ver+ipoplib.tincan_control"
 
-    g_type_init ();
+    // increase connection counter (stop if failed NM_IPOP_SVPN_MAX_CONNECT_COUNT times)
+    priv->connect_count++;
 
-    connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &err);
-    if (!connection) {
-        g_warning ("Could not get the system bus: %s", err->message);
-        exit (1);
+    // open socket and start listener
+    socket_fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+    //socket = g_socket_new(G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM, G_SOCKET_PROTOCOL_UDP, NULL);
+    // stop cause setting up socket failed
+    if (socket_fd < 0) {
+    //if(socket == NULL) {
+        priv->connect_timer = 0;
+        return FALSE;
     }
 
-    config = g_hash_table_new (g_str_hash, g_str_equal);
-    ip4config = g_hash_table_new (g_str_hash, g_str_equal);
+    // set ip and port
+    serv_addr.sin_family = AF_INET;
+    if (inet_pton (AF_INET, "127.0.0.1", &(serv_addr.sin_addr)) <= 0)
+        g_warning ("%s: could not convert 127.0.0.1", __func__);
+    serv_addr.sin_port = htons(5800);
 
-    tmp = "ipop"; ///sys/device/virtual/net/ipop";
-    val = str_to_gvalue (tmp, FALSE);
-    g_hash_table_insert (config, NM_VPN_PLUGIN_CONFIG_TUNDEV, val);
-    g_hash_table_insert (config, NM_VPN_PLUGIN_CONFIG_HAS_IP4, bool_to_gvalue (TRUE));
+    // connect socket; handle failure
+    if (!(connect(socket_fd, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) == 0)) {
+        close(socket_fd);
 
-    /* External world-visible VPN gateway */
-    //val = trusted_remote_to_gvalue ();
-    //if (val)
-    //    g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_EXT_GATEWAY, val);
-    //else
-    //	helper_failed (connection, "VPN Gateway");
+        // try again if NM_IPOP_SVPN_MAX_CONNECT_COUNT not exceeded
+        if (priv->connect_count <= NM_IPOP_SVPN_MAX_CONNECT_COUNT)
+            return TRUE;
 
-    /* Internal VPN subnet gateway */
-    val = addr_to_gvalue ("172.31.0.100"); //getenv ("route_vpn_gateway"));
-    if (val)
-        g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_PTP, val);
+        g_warning("Could not open management socket");
+        nm_vpn_plugin_failure(NM_VPN_PLUGIN(plugin), NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED);
+        nm_vpn_plugin_set_state(NM_VPN_PLUGIN(plugin), NM_VPN_SERVICE_STATE_STOPPED);
 
-    /* VPN device */
-    tmp = "/sys/device/virtual/net/ipop"; //getenv("dev");
-    g_message("device tmp: %s", tmp);
-    val = str_to_gvalue (tmp, FALSE);
-    //if (val)
-        g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_TUNDEV, val);
-    //else
-    //    helper_failed (connection, "Tunnel Device");
+        // end timeout
+        priv->connect_timer = 0;
+        return FALSE;
+    }
+    else {
+        GIOChannel *svpn_socket_channel;
+        JsonParser* json_parser;
+        JsonReader* json_reader;
+        char* request;
+        gchar* response;
+        GError* error = NULL;;
 
-    //if (strncmp (tmp, "tap", 3) == 0)
-    //    tapdev = TRUE;
+        // setup io channel on socket
+        svpn_socket_channel = g_io_channel_unix_new(socket_fd);
+        g_io_channel_set_encoding(svpn_socket_channel, NULL, NULL);
+        //priv->svpn_socket_channel = ipop_svpn_socket_channel;
 
-    /* IP address */
-    val = addr_to_gvalue ("172.31.0.100"); //getenv ("ifconfig_local"));
-    //if (val)
-        g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_ADDRESS, val);
-    //else
-    //	helper_failed (connection, "IP4 Address");
+        // send request and get response
+        request = "\x02\x01{\"m\":\"get_state\"}";
+        response = nm_ipop_svpn_socket_request(plugin, svpn_socket_channel, request);
+        // exit if no response
+        if (!response || !strlen(response)) {
+            g_warning("No response from svpn socket.");
+            nm_vpn_plugin_failure(NM_VPN_PLUGIN(plugin), NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED);
+            nm_vpn_plugin_set_state(NM_VPN_PLUGIN(plugin), NM_VPN_SERVICE_STATE_STOPPED);
 
-//	/* PTP address; for vpnc PTP address == internal IP4 address */
-//	val = addr_to_gvalue (getenv ("ifconfig_remote"));
-//	if (val) {
-//		/* Sigh.  IPOP added 'topology' stuff in 2.1 that changes the meaning
-//		 * of the ifconfig bits without actually telling you what they are
-//		 * supposed to mean; basically relying on specific 'ifconfig' behavior.
-//		 */
-//		tmp = getenv ("ifconfig_remote");
-//		if (tmp && !strncmp (tmp, "255.", 4)) {
-//			guint32 addr;
+            // end timeout
+            priv->connect_timer = 0;
+            return FALSE;
+        }
+        // remove code from beginning of response
+        response = g_strstrip(g_strdelimit(response, "\x02\x01", ' '));
 
-//			/* probably a netmask, not a PTP address; topology == subnet */
-//			addr = g_value_get_uint (val);
-//			g_value_set_uint (val, nm_utils_ip4_netmask_to_prefix (addr));
-//			g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);
-//		} else
-//			g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_PTP, val);
-//	}
+        // parse json response and save information
+        json_parser = json_parser_new();
+        if (json_parser_load_from_data(json_parser, response, strlen(response), &error)) {
+            json_reader = json_reader_new(json_parser_get_root(json_parser));
 
-//	/* Netmask
-//	 *
-//	 * Either TAP or TUN modes can have an arbitrary netmask in newer versions
-//	 * of ipop, while in older versions only TAP mode would.  So accept a
-//	 * netmask if passed, otherwise default to /32 for TUN devices since they
-//	 * are usually point-to-point.
-//	 */
-//	tmp = getenv ("ifconfig_netmask");
-//	if (tmp && inet_pton (AF_INET, tmp, &temp_addr) > 0) {
-//		val = g_slice_new0 (GValue);
-//		g_value_init (val, G_TYPE_UINT);
-//		g_value_set_uint (val, nm_utils_ip4_netmask_to_prefix (temp_addr.s_addr));
-//		g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);
-//	} else if (!tapdev) {
-//		if (!g_hash_table_lookup (config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX)) {
-            val = g_slice_new0 (GValue);
-            g_value_init (val, G_TYPE_UINT);
-            g_value_set_uint (val, 24);
-            g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);
-//		}
-//	} else
-//		g_warning ("No IP4 netmask/prefix (missing or invalid 'ifconfig_netmask')");
+            if(!json_reader_read_member(json_reader, "_ip4")) {
+                g_warning("Could not read IP4 address, error: %s", json_reader_get_error(json_reader)->message);
+                nm_vpn_plugin_failure(NM_VPN_PLUGIN(plugin), NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED);
+                nm_vpn_plugin_set_state(NM_VPN_PLUGIN(plugin), NM_VPN_SERVICE_STATE_STOPPED);
 
-    //val = get_routes ();
-    //if (val)
-    //    g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_ROUTES, val);
+                // end timeout
+                priv->connect_timer = 0;
+                return FALSE;
+            }
+            priv->io_data->ip4 = g_strdup(json_reader_get_string_value(json_reader));
+            json_reader_end_member(json_reader);
 
-//    	/* DNS and WINS servers */
-//	for (i = 1; i < 256; i++) {
-//		char *env_name;
+            if(!json_reader_read_member(json_reader, "_ip6")) {
+                g_warning("Could not read IP6 address, error: %s", json_reader_get_error(json_reader)->message);
+                nm_vpn_plugin_failure(NM_VPN_PLUGIN(plugin), NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED);
+                nm_vpn_plugin_set_state(NM_VPN_PLUGIN(plugin), NM_VPN_SERVICE_STATE_STOPPED);
 
-//		env_name = g_strdup_printf ("foreign_option_%d", i);
-//		tmp = getenv (env_name);
-//		g_free (env_name);
+                // end timeout
+                priv->connect_timer = 0;
+                return FALSE;
+            }
+            priv->io_data->ip6 = g_strdup(json_reader_get_string_value(json_reader));
+            json_reader_end_member(json_reader);
+        } else {
+            g_warning("Could not parse svpn result, error: %s", error->message);
+            nm_vpn_plugin_failure(NM_VPN_PLUGIN(plugin), NM_VPN_PLUGIN_FAILURE_CONNECT_FAILED);
+            nm_vpn_plugin_set_state(NM_VPN_PLUGIN(plugin), NM_VPN_SERVICE_STATE_STOPPED);
 
-//		if (!tmp || strlen (tmp) < 1)
-//			break;
+            // end timeout
+            priv->connect_timer = 0;
+            return FALSE;
+        }
 
-//		if (!g_str_has_prefix (tmp, "dhcp-option "))
-//			continue;
+        // send the config info to networkmanager
+        if(send_config_to_nm(plugin)) {
+            // end timeout cause we send the information successfully
+            priv->connect_timer = 0;
+            return FALSE;
+        }
+    }
 
-//		tmp += 12; /* strlen ("dhcp-option ") */
-
-//		if (g_str_has_prefix (tmp, "DNS "))
-//			dns_list = parse_addr_list (dns_list, tmp + 4);
-//		else if (g_str_has_prefix (tmp, "WINS "))
-//			nbns_list = parse_addr_list (nbns_list, tmp + 5);
-//		else if (g_str_has_prefix (tmp, "DOMAIN ") && !dns_domain)
-//			dns_domain = str_to_gvalue (tmp + 7, FALSE);
-//	}
-
-//	if (dns_list)
-//		g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_DNS, dns_list);
-//	if (nbns_list)
-//		g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_NBNS, nbns_list);
-//	if (dns_domain)
-//		g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_DOMAIN, dns_domain);
-
-    // prevent from getting default route
-    g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT, bool_to_gvalue (TRUE));
-
-    /* Send the config info to nm-ipop-service */
-    send_config_to_nm(connection, config, ip4config);
-
-    //g_message("connect timer called");
-
-    return FALSE;
+    // timeout has to called again cause socket or dbus connection failed
+    return TRUE;
 }
 
 /**
@@ -846,121 +660,6 @@ static void svpn_watch_cb(GPid pid, gint status, gpointer user_data){
     nm_vpn_plugin_set_state(plugin, NM_VPN_SERVICE_STATE_STOPPED);
 }
 
-static gboolean svpn_out_watch_cb(GIOChannel*   channel,
-                                  GIOCondition  cond,
-                                  gpointer*     data) {
-    NMVPNPlugin *plugin = NM_VPN_PLUGIN(data);
-    NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE(plugin);
-    gchar *string;
-    gsize  size;
-
-    //TODO: lookup what G_IO_HUP means
-    if( cond == G_IO_HUP )
-    {
-        g_io_channel_unref( channel );
-        return FALSE;
-    }
-
-    // read a line
-    g_io_channel_read_line(channel, &string, &size, NULL, NULL );
-
-    if (string && strlen(string)) {
-        // check if string starts with "Password"
-        if(g_str_has_prefix(string, "Password")) {
-            // write password to stdin
-            g_io_channel_write_chars(priv->svpn_in_channel, priv->io_data->xmpp_password,
-                                     strlen(priv->io_data->xmpp_password), NULL, NULL);
-        }
-    }
-
-
-    g_free(string);
-
-    return TRUE;
-}
-
-/**
- * @brief nm_find_ipop
- * @detail searchs for ipop binary
- * @return
- */
-static const char* nm_find_ipop(void) {
-	static const char *ipop_binary_paths[] = {
-        "/usr/sbin/ipop/ipop-tincan",
-		//"/sbin/ipop",
-		//"/usr/local/sbin/ipop",
-		NULL
-	};
-	const char  **ipop_binary = ipop_binary_paths;
-
-	while (*ipop_binary != NULL) {
-		if (g_file_test (*ipop_binary, G_FILE_TEST_EXISTS))
-			break;
-		ipop_binary++;
-	}
-
-	return *ipop_binary;
-}
-
-/**
- * @brief nm_find_svpn
- * @detail searchs for svpn binary
- * @return
- */
-static const char* nm_find_svpn(void) {
-    static const char *svpn_binary_paths[] = {
-        "/usr/sbin/ipop/svpn_controller.py",
-        //"/sbin/svpn_controller.py",
-        //"/usr/local/sbin/svpn_controller.py",
-        NULL
-    };
-    const char** svpn_binary = svpn_binary_paths;
-
-    while (*svpn_binary != NULL) {
-        if (g_file_test(*svpn_binary, G_FILE_TEST_EXISTS))
-            break;
-        svpn_binary++;
-    }
-
-    return *svpn_binary;
-}
-
-/**
- * @brief nm_ipop_free_args
- * @param args
- */
-static void nm_ipop_free_args(GPtrArray *args) {
-    g_ptr_array_foreach(args, (GFunc) g_free, NULL);
-    g_ptr_array_free(args, TRUE);
-}
-
-/**
- * @brief nm_ipop_add_arg
- * @param args
- * @param arg
- */
-static void nm_ipop_add_arg(GPtrArray *args, const char *arg) {
-    g_return_if_fail(args != NULL);
-    g_return_if_fail(arg != NULL);
-
-    g_ptr_array_add(args, (gpointer)g_strdup(arg));
-}
-
-/**
- * @brief nm_ipop_add_optional_arg
- * @param args
- * @param option
- * @param arg
- */
-static void nm_ipop_add_optional_arg(GPtrArray *args, const char* option, const char *arg) {
-    g_return_if_fail(args != NULL);
-    g_return_if_fail(option != NULL);
-    g_return_if_fail(arg != NULL);
-
-    g_ptr_array_add(args, (gpointer)g_strdup(option));
-    g_ptr_array_add(args, (gpointer)g_strdup(arg));
-}
-
 /**
  * @brief nm_ipop_start_ipop_binary
  * @detail starts ipop binary needed for svpn controller
@@ -974,9 +673,15 @@ static gboolean nm_ipop_start_ipop_binary(NMIPOPPlugin* plugin, GError** error) 
     GPid pid;
     GSource* ipop_watch;
     gchar **stderr, **stdout;
+    const char *ipop_binary_paths[] = {
+        "/usr/sbin/ipop/ipop-tincan",
+        //"/sbin/ipop",
+        //"/usr/local/sbin/ipop",
+        NULL
+    };
 
     /* Find ipop */
-    ipop_binary = nm_find_ipop();
+    ipop_binary = find_file(ipop_binary_paths);
     if (!ipop_binary) {
         g_set_error(error,
                      NM_VPN_PLUGIN_ERROR,
@@ -1035,20 +740,25 @@ static gboolean nm_ipop_start_ipop_binary(NMIPOPPlugin* plugin, GError** error) 
 static gboolean nm_ipop_start_svpn_controller(NMIPOPPlugin* plugin,
                                  NMSettingVPN* s_vpn,
                                  GError** error) {
-	NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE (plugin);
-    const char *svpn_binary, *tmp;
+    NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE (plugin);
+    const char *svpn_binary, *tmp, *password;
+    gchar* string;
     GPtrArray* args;
     GSource* svpn_watch;
-	GPid pid;
+    GPid pid;
     gint in, out;
     GIOChannel *in_ch, *out_ch;
+    gsize size;
     int i;
-
-    // setup io data memory space
-    priv->io_data = g_malloc0 (sizeof (NMIPOPPluginIOData));
+    const char *svpn_binary_paths[] = {
+        "/usr/sbin/ipop/svpn_controller.py",
+        //"/sbin/svpn_controller.py",
+        //"/usr/local/sbin/svpn_controller.py",
+        NULL
+    };
 
     /* Find svpn binary */
-    svpn_binary = nm_find_svpn();
+    svpn_binary = find_file(svpn_binary_paths);
     if (!svpn_binary) {
 		g_set_error (error,
 		             NM_VPN_PLUGIN_ERROR,
@@ -1074,15 +784,12 @@ static gboolean nm_ipop_start_svpn_controller(NMIPOPPlugin* plugin,
         nm_ipop_add_optional_arg(args, "--username", tmp);
     }
 
-    g_message("get xmpp password");
-    tmp = nm_setting_vpn_get_secret(s_vpn, NM_IPOP_KEY_XMPP_PASSWORD);
-    if (tmp && strlen(tmp)) {
-        // simple solution: add password to arguments
-        //nm_ipop_add_optional_arg(args, "--password", tmp);
+    // controller should use stdout to ask for password
+    nm_ipop_add_arg(args, "--pwdstdout");
 
-        // better solution: save password in io data and write it to
-        // stdin pipe when svpn_controller is asking for it
-        priv->io_data->xmpp_password = g_strdup(tmp);
+    password = nm_setting_vpn_get_secret(s_vpn, NM_IPOP_KEY_XMPP_PASSWORD);
+    if (password && strlen(password)) {
+        password = g_strdup_printf("%s\n", password);
     }
     else {
         /* No password specified? Exit! */
@@ -1093,6 +800,10 @@ static gboolean nm_ipop_start_svpn_controller(NMIPOPPlugin* plugin,
             "%s",
             _("No password specified."));
         nm_ipop_free_args(args);
+
+        // write zeros over password memory space
+        memset((void*)password, 0, strlen(password));
+
         return FALSE;
     }
 
@@ -1111,11 +822,55 @@ static gboolean nm_ipop_start_svpn_controller(NMIPOPPlugin* plugin,
     if (!g_spawn_async_with_pipes(NULL, (char **)args->pdata, NULL,
                         G_SPAWN_DO_NOT_REAP_CHILD, NULL, NULL, &pid, &in, &out, NULL, error)) {
         nm_ipop_free_args(args);
-		return FALSE;
-	}
+        return FALSE;
+    }
     nm_ipop_free_args(args);
 
     if(debug) g_message("svpn started with pid %d", pid);
+
+    // add io channels for stdin and stdout
+    in_ch = g_io_channel_unix_new(in);
+    out_ch = g_io_channel_unix_new(out);
+
+    // wait till svpn asks for password and simply write password to in channel
+    g_io_channel_read_line(out_ch, &string, &size, NULL, NULL);
+    i = 0;
+    while(i < 30 && !string && !strlen(string) && !(g_str_has_prefix(string, "Password"))) {
+        usleep(200);
+        g_io_channel_read_line(out_ch, &string, &size, NULL, NULL);
+        i++;
+    }
+
+    // reached threshold?
+    if (i >= 30) {
+        g_set_error (
+            error,
+            NM_VPN_PLUGIN_ERROR,
+            NM_VPN_PLUGIN_ERROR_BAD_ARGUMENTS,
+            "%s",
+            _("Svpn controller didn't ask for password."));
+        nm_ipop_free_args(args);
+
+        // write zeros over password memory space
+        memset((void*)password, 0, strlen(password));
+
+        // free channels
+        g_io_channel_unref(in_ch);
+        g_io_channel_unref(out_ch);
+
+        return FALSE;
+    }
+
+    // write password
+    g_io_channel_write_chars(in_ch, password, strlen(password), NULL, NULL);
+    g_io_channel_flush(in_ch, NULL);
+
+    // write zeros over password memory space
+    memset((void*)password, 0, strlen(password));
+
+    // free channels
+    g_io_channel_unref(in_ch);
+    g_io_channel_unref(out_ch);
 
     // add callback function to watch for death of svpn_controller
     priv->svpn_pid = pid;
@@ -1124,16 +879,6 @@ static gboolean nm_ipop_start_svpn_controller(NMIPOPPlugin* plugin,
     g_source_attach(svpn_watch, NULL);
     g_source_unref(svpn_watch);
 
-    // add io channels for stdin and stdout
-    in_ch = g_io_channel_unix_new(in);
-    out_ch = g_io_channel_unix_new(out);
-    // save in channel
-    priv->svpn_in_channel = in_ch;
-    // and add a callback for svpn_controller stdout
-    g_io_add_watch(out_ch, G_IO_IN | G_IO_HUP, (GIOFunc)svpn_out_watch_cb, plugin);
-
-    // run connect scheduler
-    // he will manage the communication to send password to svpn_controller
     nm_ipop_schedule_connect_timer(plugin);
 
 	return TRUE;
@@ -1207,11 +952,9 @@ static gboolean real_connect(NMVPNPlugin* plugin,
  * @param error
  * @return
  */
-static gboolean
-real_need_secrets (NMVPNPlugin *plugin,
-                   NMConnection *connection,
-                   char **setting_name,
-                   GError **error) {
+static gboolean real_need_secrets(NMVPNPlugin *plugin, NMConnection *connection,
+                                    char **setting_name, GError **error) {
+    //NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE (plugin);
     NMSettingVPN *s_vpn;
     gboolean need_secrets = TRUE;
     NMSettingSecretFlags flags = NM_SETTING_SECRET_FLAG_NONE;
@@ -1224,7 +967,7 @@ real_need_secrets (NMVPNPlugin *plugin,
 		nm_connection_dump (connection);
 	}
 
-	s_vpn = NM_SETTING_VPN (nm_connection_get_setting (connection, NM_TYPE_SETTING_VPN));
+    s_vpn = NM_SETTING_VPN(nm_connection_get_setting (connection, NM_TYPE_SETTING_VPN));
 	if (!s_vpn) {
 		g_set_error (error,
 		             NM_VPN_PLUGIN_ERROR,
@@ -1234,14 +977,30 @@ real_need_secrets (NMVPNPlugin *plugin,
 		return FALSE;
 	}
 
-    //check_need_secrets (s_vpn, &need_secrets);
     /* Password auth */
-    g_message("get secret flags");
-    nm_setting_get_secret_flags (NM_SETTING (s_vpn), NM_IPOP_KEY_XMPP_PASSWORD, &flags, NULL);
-    /* If the password is saved and we can retrieve it, it's not required */
-    g_message("get secrets to check their existance");
-    if (nm_setting_vpn_get_secret (NM_SETTING_VPN (s_vpn), NM_IPOP_KEY_XMPP_PASSWORD)) {
-        need_secrets = FALSE;
+    nm_setting_get_secret_flags(NM_SETTING(s_vpn), NM_IPOP_KEY_XMPP_PASSWORD, &flags, NULL);
+    switch(flags) {
+        // flag not set -> act like agent_owned
+        case NM_SETTING_SECRET_FLAG_NONE:
+
+        // password is saved -> retrieve it
+        case NM_SETTING_SECRET_FLAG_AGENT_OWNED:
+            if (nm_setting_vpn_get_secret(NM_SETTING_VPN (s_vpn), NM_IPOP_KEY_XMPP_PASSWORD)) {
+                need_secrets = FALSE;
+                //priv->io_data->xmpp_password_send = FALSE;
+            }
+            break;
+
+        // password not saved but required -> ask for it
+        case NM_SETTING_SECRET_FLAG_NOT_SAVED:
+            need_secrets = TRUE;
+            //priv->io_data->xmpp_password_send = FALSE;
+            break;
+
+        // password not required -> do nothing (and we don't have to send anything -> send flag = TRUE)
+        case NM_SETTING_SECRET_FLAG_NOT_REQUIRED:
+            //priv->io_data->xmpp_password_send = TRUE;
+            break;
     }
 
 	if (need_secrets)
@@ -1270,11 +1029,14 @@ ensure_killed (gpointer data)
  * @param err
  * @return
  */
-static gboolean
-real_disconnect (NMVPNPlugin* plugin, GError** err) {
+static gboolean real_disconnect(NMVPNPlugin* plugin, GError** err) {
 	NMIPOPPluginPrivate *priv = NM_IPOP_PLUGIN_GET_PRIVATE (plugin);
 
     if (priv->svpn_pid) {
+        //// free io channels
+        //g_io_channel_unref(priv->svpn_in_channel);
+        //g_io_channel_unref(priv->svpn_out_channel);
+
         if (kill(priv->svpn_pid, SIGTERM) == 0)
             g_timeout_add(2000, ensure_killed, GINT_TO_POINTER(priv->svpn_pid));
 		else
@@ -1388,13 +1150,20 @@ static void plugin_state_changed(NMIPOPPlugin* plugin,
  */
 NMIPOPPlugin* nm_ipop_plugin_new(void) {
     NMIPOPPlugin* plugin;
+    NMIPOPPluginPrivate* priv;
 
     plugin =  (NMIPOPPlugin*) g_object_new(NM_TYPE_IPOP_PLUGIN,
                                             NM_VPN_PLUGIN_DBUS_SERVICE_NAME,
                                             NM_DBUS_SERVICE_IPOP,
                                             NULL);
-	if (plugin)
+
+    if (plugin) {
         g_signal_connect(G_OBJECT(plugin), "state-changed", G_CALLBACK(plugin_state_changed), NULL);
+
+        priv = NM_IPOP_PLUGIN_GET_PRIVATE(plugin);
+        // setup io data memory space
+        priv->io_data = g_malloc0 (sizeof (NMIPOPPluginIOData));
+    }
 
 	return plugin;
 }

@@ -23,10 +23,20 @@
 #define UTILS_H
 
 #include <glib.h>
+#include <glib-object.h>
 
-gboolean is_pkcs12 (const char *filepath);
+//gboolean is_pkcs12 (const char *filepath);
+//gboolean is_encrypted (const char *filename);
 
-gboolean is_encrypted (const char *filename);
+GValue* str_to_gvalue(const char *str, gboolean try_convert);
+GValue* addr_to_gvalue(const char *str);
+GValue* bool_to_gvalue(gboolean b);
+
+const char* find_file(const char** file_paths);
+
+void nm_ipop_free_args(GPtrArray *args);
+void nm_ipop_add_arg(GPtrArray *args, const char *arg);
+void nm_ipop_add_optional_arg(GPtrArray *args, const char* option, const char *arg);
 
 #endif  /* UTILS_H */
 

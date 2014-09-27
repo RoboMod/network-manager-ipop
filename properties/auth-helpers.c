@@ -788,7 +788,7 @@ tls_default_filter (const GtkFileFilterInfo *filter_info, gpointer data)
 	char *contents = NULL, *p, *ext;
 	gsize bytes_read = 0;
 	gboolean show = FALSE;
-	gboolean pkcs_allowed = GPOINTER_TO_UINT (data);
+//	gboolean pkcs_allowed = GPOINTER_TO_UINT (data);
 	struct stat statbuf;
 
 	if (!filter_info->filename)
@@ -802,10 +802,10 @@ tls_default_filter (const GtkFileFilterInfo *filter_info, gpointer data)
 	if (!ext)
 		return FALSE;
 
-	if (pkcs_allowed && !strcmp (ext, ".p12") && is_pkcs12 (filter_info->filename)) {
-		g_free (ext);
-		return TRUE;
-	}
+//	if (pkcs_allowed && !strcmp (ext, ".p12") && is_pkcs12 (filter_info->filename)) {
+//		g_free (ext);
+//		return TRUE;
+//	}
 
 	if (strcmp (ext, ".pem") && strcmp (ext, ".crt") && strcmp (ext, ".key") && strcmp (ext, ".cer")) {
 		g_free (ext);
