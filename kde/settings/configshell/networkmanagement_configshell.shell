@@ -1,0 +1,4 @@
+#!/bin/sh
+# created by cmake, don't edit, changes will be lost
+
+LD_LIBRARY_PATH=/home/andreas/Programing/C++/network-manager-ipop/kde/lib/./:/usr/local/lib64:/usr/lib64:/usr/lib64${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH} "/home/andreas/Programing/C++/network-manager-ipop/kde/settings/configshell/networkmanagement_configshell" "$@"
