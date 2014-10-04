@@ -30,42 +30,39 @@
 
 typedef void (*ChangedCallback) (GtkWidget *widget, gpointer user_data);
 
-void init_one_pw_combo (GtkBuilder *builder,
+void init_one_pw_combo(GtkBuilder *builder,
                    NMSettingVPN *s_vpn,
-                   const char *prefix,
                    const char *secret_key,
                    GtkWidget *entry_widget,
                    ChangedCallback changed_cb,
                    gpointer user_data);
 
-void tls_pw_init_auth_widget (GtkBuilder *builder,
-                              GtkSizeGroup *group,
-                              NMSettingVPN *s_vpn,
-                              const char *contype,
-                              const char *prefix,
-                              ChangedCallback changed_cb,
-                              gpointer user_data);
+//void tls_pw_init_auth_widget(GtkBuilder *builder,
+//                              GtkSizeGroup *group,
+//                              NMSettingVPN *s_vpn,
+//                              const char *contype,
+//                              const char *prefix,
+//                              ChangedCallback changed_cb,
+//                              gpointer user_data);
 
-void sk_init_auth_widget (GtkBuilder *builder,
-                          GtkSizeGroup *group,
-                          NMSettingVPN *s_vpn,
-                          ChangedCallback changed_cb,
-                          gpointer user_data);
+//void sk_init_auth_widget(GtkBuilder *builder,
+//                          GtkSizeGroup *group,
+//                          NMSettingVPN *s_vpn,
+//                          ChangedCallback changed_cb,
+//                          gpointer user_data);
 
-gboolean auth_widget_check_validity (GtkBuilder *builder, const char *contype, GError **error);
+//gboolean auth_widget_check_validity(GtkBuilder *builder, const char *contype, GError **error);
 
-gboolean auth_widget_update_connection (GtkBuilder *builder,
-                                        const char *contype,
-                                        NMSettingVPN *s_vpn);
+//gboolean auth_widget_update_connection(GtkBuilder *builder,
+//                                        const char *contype,
+//                                        NMSettingVPN *s_vpn);
 
-GtkFileFilter *tls_file_chooser_filter_new (gboolean pkcs_allowed);
+//GtkFileFilter *tls_file_chooser_filter_new(gboolean pkcs_allowed);
 
-GtkFileFilter *sk_file_chooser_filter_new (void);
+//GtkFileFilter *sk_file_chooser_filter_new(void);
 
-GtkWidget *advanced_dialog_new (GHashTable *hash, const char *contype);
+//GHashTable *advanced_dialog_new_hash_from_connection(NMConnection *connection, GError **error);
 
-GHashTable *advanced_dialog_new_hash_from_connection (NMConnection *connection, GError **error);
-
-GHashTable *advanced_dialog_new_hash_from_dialog (GtkWidget *dialog, GError **error);
+//GHashTable *advanced_dialog_new_hash_from_dialog(GtkWidget *dialog, GError **error);
 
 #endif

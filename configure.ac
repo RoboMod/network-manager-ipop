@@ -13,6 +13,7 @@ dnl Require programs
 dnl
 AC_PROG_CC
 AM_PROG_CC_C_O
+AC_PROG_CXX
 AC_PROG_INSTALL
 AC_PROG_LIBTOOL
 
@@ -71,7 +72,7 @@ AC_SUBST(GIO_LIBS)
 
 PKG_CHECK_MODULES(JSON, json-glib-1.0)
 AC_SUBST(JSON_CFLAGS)
-AC_SUBST(JSONLIBS)
+AC_SUBST(JSON_LIBS)
 
 PKG_CHECK_MODULES(NM,
 	NetworkManager >= 0.9.6
@@ -141,6 +142,7 @@ fi
 AC_CONFIG_FILES([
 Makefile
 src/Makefile
+kde/Makefile
 common/Makefile
 auth-dialog/Makefile
 properties/Makefile

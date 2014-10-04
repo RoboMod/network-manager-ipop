@@ -38,8 +38,8 @@
 #define NM_DBUS_INTERFACE_IPOP  "org.freedesktop.NetworkManager.ipop"
 #define NM_DBUS_PATH_IPOP       "/org/freedesktop/NetworkManager/ipop"
 
-#define NM_IPOP_KEY_LOCAL_IP "local-ip" /* ??? */
-#define NM_IPOP_KEY_PORT "port"
+#define NM_IPOP_KEY_IP4_ADDRESS "ip4-address"
+#define NM_IPOP_KEY_IP4_NETMASK "ip4-netmask"
 #define NM_IPOP_KEY_XMPP_HOST "xmpp-host"
 #define NM_IPOP_KEY_XMPP_USERNAME "xmpp-username"
 #define NM_IPOP_KEY_XMPP_PASSWORD "xmpp-password"

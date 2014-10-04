@@ -38,12 +38,12 @@
     <property name="border_width">12</property>
     <property name="spacing">16</property>
     <child>
-      <object class="GtkVBox" id="vbox8">
+      <object class="GtkVBox" id="ipop-xmpp-vbox">
         <property name="visible">True</property>
         <property name="can_focus">False</property>
         <property name="spacing">6</property>
         <child>
-          <object class="GtkLabel" id="label22">
+          <object class="GtkLabel" id="ipop-xmpp-label">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="xalign">0</property>
@@ -57,12 +57,12 @@
           </packing>
         </child>
         <child>
-          <object class="GtkAlignment" id="alignment8">
+          <object class="GtkAlignment" id="ipop-xmpp-alignment">
             <property name="visible">True</property>
             <property name="can_focus">False</property>
             <property name="left_padding">12</property>
             <child>
-              <object class="GtkTable" id="table2">
+              <object class="GtkTable" id="ipop-xmpp-table">
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="n_rows">3</property>
@@ -70,28 +70,27 @@
                 <property name="column_spacing">6</property>
                 <property name="row_spacing">6</property>
                 <child>
-                  <object class="GtkLabel" id="label23">
+                  <object class="GtkLabel" id="ipop-xmpp-host-label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
                     <property name="label" translatable="yes">Host:</property>
-                    <property name="mnemonic_widget">xmpp_host</property>
+                    <property name="mnemonic_widget">ipop-xmpp-host</property>
                   </object>
                   <packing>
                     <property name="y_options"/>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkAlignment" id="alignment2">
+                  <object class="GtkAlignment" id="ipop-xmpp-host-alignment">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <child>
-                      <object class="GtkEntry" id="xmpp_host">
+                      <object class="GtkEntry" id="ipop-xmpp-host">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
-                        <property name="tooltip_text" translatable="yes">Remote host name or IP address. You can specify multiple items for redundancy (use commas to separate the entries).
-config: remote</property>
+                        <property name="tooltip_text" translatable="yes">XMPP host name or IP address</property>
                         <property name="progress_pulse_step">0.14000000059604645</property>
                       </object>
                     </child>
@@ -103,7 +102,7 @@ config: remote</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label10">
+                  <object class="GtkLabel" id="ipop-xmpp-username-label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
@@ -116,19 +115,16 @@ config: remote</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkAlignment" id="alignment11">
+                  <object class="GtkAlignment" id="ipop-xmpp-username-alignment">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <child>
-                      <object class="GtkEntry" id="xmpp_username">
+                      <object class="GtkEntry" id="ipop-xmpp-username">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_markup" translatable="yes">Username passed to IPOP when prompted for it.
-config: auth-user-pass</property>
-                        <property name="tooltip_text" translatable="yes">Username passed to IPOP when prompted for it.
-config: auth-user-pass</property>
+                        <property name="tooltip_text" translatable="yes">XMPP username</property>
                         <property name="invisible_char">●</property>
                       </object>
                     </child>
@@ -142,7 +138,7 @@ config: auth-user-pass</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkLabel" id="label28">
+                  <object class="GtkLabel" id="ipop-xmpp-password-label">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">0</property>
@@ -155,19 +151,16 @@ config: auth-user-pass</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkAlignment" id="alignment21">
+                  <object class="GtkAlignment" id="ipop-xmpp-password-alignment">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="xalign">1</property>
                     <child>
-                      <object class="GtkEntry" id="xmpp_password">
+                      <object class="GtkEntry" id="ipop-xmpp-password">
                         <property name="visible">True</property>
                         <property name="can_focus">True</property>
                         <property name="has_tooltip">True</property>
-                        <property name="tooltip_markup" translatable="yes">Password passed to IPOP when prompted for it.
-config: auth-user-pass</property>
-                        <property name="tooltip_text" translatable="yes">Password passed to IPOP when prompted for it.
-config: auth-user-pass</property>
+                        <property name="tooltip_text" translatable="yes">XMPP password</property>
                         <property name="visibility">False</property>
                         <property name="invisible_char">●</property>
                       </object>
@@ -182,12 +175,12 @@ config: auth-user-pass</property>
                   </packing>
                 </child>
                 <child>
-                  <object class="GtkComboBox" id="xmpp_pass_type_combo">
+                  <object class="GtkComboBox" id="ipop-xmpp-password-type-combo">
                     <property name="visible">True</property>
                     <property name="can_focus">False</property>
                     <property name="model">liststore1</property>
                     <child>
-                      <object class="GtkCellRendererText" id="renderer8"/>
+                      <object class="GtkCellRendererText" id="ipop-xmpp-password-type-renderer"/>
                       <attributes>
                         <attribute name="text">0</attribute>
                       </attributes>
@@ -215,6 +208,126 @@ config: auth-user-pass</property>
         <property name="expand">False</property>
         <property name="fill">True</property>
         <property name="position">0</property>
+      </packing>
+    </child>
+    <child>
+      <object class="GtkVBox" id="ipop-ip">
+        <property name="visible">True</property>
+        <property name="can_focus">False</property>
+        <property name="spacing">6</property>
+        <child>
+          <object class="GtkLabel" id="ipop-ip-label">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="xalign">0</property>
+            <property name="label" translatable="yes">&lt;b&gt;IP4&lt;/b&gt;</property>
+            <property name="use_markup">True</property>
+          </object>
+          <packing>
+            <property name="expand">False</property>
+            <property name="fill">False</property>
+            <property name="position">0</property>
+          </packing>
+        </child>
+        <child>
+          <object class="GtkAlignment" id="ipop-ip-alignment">
+            <property name="visible">True</property>
+            <property name="can_focus">False</property>
+            <property name="left_padding">12</property>
+            <child>
+              <object class="GtkTable" id="ipop-ip-table">
+                <property name="visible">True</property>
+                <property name="can_focus">False</property>
+                <property name="n_rows">2</property>
+                <property name="n_columns">3</property>
+                <property name="column_spacing">6</property>
+                <property name="row_spacing">6</property>
+                <child>
+                  <object class="GtkLabel" id="ipop-ip-address-label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">Address:</property>
+                    <property name="mnemonic_widget">ipop-xmpp-host</property>
+                  </object>
+                  <packing>
+                    <property name="y_options"/>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkAlignment" id="ipop-ip-address-alignment">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">1</property>
+                    <child>
+                      <object class="GtkEntry" id="ipop-ip-address">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Local IP4 address.</property>
+                        <property name="invisible_char">●</property>
+                        <property name="invisible_char_set">True</property>
+                        <property name="progress_pulse_step">0.14000000059604645</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">3</property>
+                    <property name="y_options"/>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkLabel" id="ipop-ip-netmask-label">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">0</property>
+                    <property name="label" translatable="yes">Netmask:</property>
+                  </object>
+                  <packing>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="y_options"/>
+                  </packing>
+                </child>
+                <child>
+                  <object class="GtkAlignment" id="ipop-ip-netmask-alignment">
+                    <property name="visible">True</property>
+                    <property name="can_focus">False</property>
+                    <property name="xalign">1</property>
+                    <child>
+                      <object class="GtkEntry" id="ipop-ip-netmask">
+                        <property name="visible">True</property>
+                        <property name="can_focus">True</property>
+                        <property name="has_tooltip">True</property>
+                        <property name="tooltip_text" translatable="yes">Subnetmask of IP4 adress, long (e.q. "255.255.255.0") and short (e.q. "24") version possible</property>
+                        <property name="invisible_char">●</property>
+                        <property name="invisible_char_set">True</property>
+                      </object>
+                    </child>
+                  </object>
+                  <packing>
+                    <property name="left_attach">1</property>
+                    <property name="right_attach">3</property>
+                    <property name="top_attach">1</property>
+                    <property name="bottom_attach">2</property>
+                    <property name="y_options"/>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="expand">True</property>
+            <property name="fill">True</property>
+            <property name="position">1</property>
+          </packing>
+        </child>
+      </object>
+      <packing>
+        <property name="expand">False</property>
+        <property name="fill">True</property>
+        <property name="position">1</property>
       </packing>
     </child>
   </object>

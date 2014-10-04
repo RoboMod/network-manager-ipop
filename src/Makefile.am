@@ -1,7 +1,6 @@
 AM_CPPFLAGS = \
 	$(DBUS_CFLAGS) \
-	$(NM_CFLAGS) \
-	$(GIO_CFLAGS) \
+        $(NM_CFLAGS) \
 	$(JSON_CFLAGS) \
 	-DG_DISABLE_DEPRECATED \
 	-DBINDIR=\"$(bindir)\" \
@@ -21,8 +20,7 @@ nm_ipop_service_SOURCES = \
 	nm-ipop-service.h
 
 nm_ipop_service_LDADD = \
-	$(NM_LIBS) \
-	$(GIO_LIBS) \
+        $(NM_LIBS) \
 	$(JSON_LIBS) \
         $(top_builddir)/common/libnm-ipop-common.la
 

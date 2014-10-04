@@ -209,7 +209,6 @@ pw_type_combo_changed_cb (GtkWidget *combo, gpointer user_data)
 void
 init_one_pw_combo (GtkBuilder *builder,
                    NMSettingVPN *s_vpn,
-                   const char *prefix,
                    const char *secret_key,
                    GtkWidget *entry_widget,
                    ChangedCallback changed_cb,
@@ -220,7 +219,7 @@ init_one_pw_combo (GtkBuilder *builder,
     GtkListStore *store;
     GtkTreeIter iter;
     const char *value = NULL;
-    char *tmp;
+    //char *tmp;
     guint32 default_idx = 1;
     NMSettingSecretFlags pw_flags = NM_SETTING_SECRET_FLAG_NONE;
 
@@ -253,10 +252,10 @@ init_one_pw_combo (GtkBuilder *builder,
     if ((active < 0) && (pw_flags & NM_SETTING_SECRET_FLAG_NOT_REQUIRED))
         active = PW_TYPE_UNUSED;
 
-    tmp = g_strdup_printf ("%s_pass_type_combo", prefix);
-    widget = GTK_WIDGET (gtk_builder_get_object (builder, tmp));
+    //tmp = g_strdup_printf ("%s_pass_type_combo", prefix);
+    widget = GTK_WIDGET (gtk_builder_get_object (builder, "ipop-xmpp-password-type-combo"));
     g_assert (widget);
-    g_free (tmp);
+    //g_free (tmp);
 
     gtk_combo_box_set_model (GTK_COMBO_BOX (widget), GTK_TREE_MODEL (store));
     g_object_unref (store);
@@ -760,658 +759,238 @@ init_one_pw_combo (GtkBuilder *builder,
 //	return TRUE;
 //}
 
-static const char *
-find_tag (const char *tag, const char *buf, gsize len)
-{
-	gsize i, taglen;
-
-	taglen = strlen (tag);
-	if (len < taglen)
-		return NULL;
-
-	for (i = 0; i < len - taglen + 1; i++) {
-		if (memcmp (buf + i, tag, taglen) == 0)
-			return buf + i;
-	}
-	return NULL;
-}
-
-static const char *pem_rsa_key_begin = "-----BEGIN RSA PRIVATE KEY-----";
-static const char *pem_dsa_key_begin = "-----BEGIN DSA PRIVATE KEY-----";
-static const char *pem_pkcs8_key_begin = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
-static const char *pem_cert_begin = "-----BEGIN CERTIFICATE-----";
-static const char *pem_unenc_key_begin = "-----BEGIN PRIVATE KEY-----";
-
-static gboolean
-tls_default_filter (const GtkFileFilterInfo *filter_info, gpointer data)
-{
-	char *contents = NULL, *p, *ext;
-	gsize bytes_read = 0;
-	gboolean show = FALSE;
-//	gboolean pkcs_allowed = GPOINTER_TO_UINT (data);
-	struct stat statbuf;
-
-	if (!filter_info->filename)
-		return FALSE;
-
-	p = strrchr (filter_info->filename, '.');
-	if (!p)
-		return FALSE;
-
-	ext = g_ascii_strdown (p, -1);
-	if (!ext)
-		return FALSE;
-
-//	if (pkcs_allowed && !strcmp (ext, ".p12") && is_pkcs12 (filter_info->filename)) {
-//		g_free (ext);
-//		return TRUE;
-//	}
-
-	if (strcmp (ext, ".pem") && strcmp (ext, ".crt") && strcmp (ext, ".key") && strcmp (ext, ".cer")) {
-		g_free (ext);
-		return FALSE;
-	}
-	g_free (ext);
-
-	/* Ignore files that are really large */
-	if (!stat (filter_info->filename, &statbuf)) {
-		if (statbuf.st_size > 500000)
-			return FALSE;
-	}
-
-	if (!g_file_get_contents (filter_info->filename, &contents, &bytes_read, NULL))
-		return FALSE;
-
-	if (bytes_read < 400)  /* needs to be lower? */
-		goto out;
-
-	/* Check for PEM signatures */
-	if (find_tag (pem_rsa_key_begin, (const char *) contents, bytes_read)) {
-		show = TRUE;
-		goto out;
-	}
-
-	if (find_tag (pem_dsa_key_begin, (const char *) contents, bytes_read)) {
-		show = TRUE;
-		goto out;
-	}
-
-	if (find_tag (pem_cert_begin, (const char *) contents, bytes_read)) {
-		show = TRUE;
-		goto out;
-	}
-
-	if (find_tag (pem_pkcs8_key_begin, (const char *) contents, bytes_read)) {
-		show = TRUE;
-		goto out;
-	}
-
-	if (find_tag (pem_unenc_key_begin, (const char *) contents, bytes_read)) {
-		show = TRUE;
-		goto out;
-	}
-
-out:
-	g_free (contents);
-	return show;
-}
-
-GtkFileFilter *
-tls_file_chooser_filter_new (gboolean pkcs_allowed)
-{
-	GtkFileFilter *filter;
-
-	filter = gtk_file_filter_new ();
-	gtk_file_filter_add_custom (filter, GTK_FILE_FILTER_FILENAME, tls_default_filter, GUINT_TO_POINTER (pkcs_allowed), NULL);
-	gtk_file_filter_set_name (filter, pkcs_allowed ? _("PEM or PKCS#12 certificates (*.pem, *.crt, *.key, *.cer, *.p12)")
-	                                               : _("PEM certificates (*.pem, *.crt, *.key, *.cer)"));
-	return filter;
-}
-
-
-static const char *sk_key_begin = "-----BEGIN IPOP Static key V1-----";
-
-static gboolean
-sk_default_filter (const GtkFileFilterInfo *filter_info, gpointer data)
-{
-	int fd;
-	unsigned char buffer[1024];
-	ssize_t bytes_read;
-	gboolean show = FALSE;
-	char *p;
-	char *ext;
-
-	if (!filter_info->filename)
-		return FALSE;
-
-	p = strrchr (filter_info->filename, '.');
-	if (!p)
-		return FALSE;
-
-	ext = g_ascii_strdown (p, -1);
-	if (!ext)
-		return FALSE;
-	if (strcmp (ext, ".key")) {
-		g_free (ext);
-		return FALSE;
-	}
-	g_free (ext);
-
-	fd = open (filter_info->filename, O_RDONLY);
-	if (fd < 0)
-		return FALSE;
-
-	bytes_read = read (fd, buffer, sizeof (buffer) - 1);
-	if (bytes_read < 400)  /* needs to be lower? */
-		goto out;
-	buffer[bytes_read] = '\0';
-
-	/* Check for PEM signatures */
-	if (find_tag (sk_key_begin, (const char *) buffer, bytes_read)) {
-		show = TRUE;
-		goto out;
-	}
-
-out:
-	close (fd);
-	return show;
-}
-
-GtkFileFilter *
-sk_file_chooser_filter_new (void)
-{
-	GtkFileFilter *filter;
-
-	filter = gtk_file_filter_new ();
-	gtk_file_filter_add_custom (filter, GTK_FILE_FILTER_FILENAME, sk_default_filter, NULL, NULL);
-	gtk_file_filter_set_name (filter, _("IPOP Static Keys (*.key)"));
-	return filter;
-}
-
-static const char *advanced_keys[] = {
-    NM_IPOP_KEY_PORT,
-    NM_IPOP_KEY_LOCAL_IP,
-    NM_IPOP_KEY_XMPP_HOST,
-    NM_IPOP_KEY_XMPP_USERNAME,
-    NM_IPOP_KEY_XMPP_PASSWORD,
-    NULL
-};
-
-static void
-copy_values (const char *key, const char *value, gpointer user_data)
-{
-    GHashTable *hash = (GHashTable *) user_data;
-    const char **i;
-
-    for (i = &advanced_keys[0]; *i; i++) {
-        if (strcmp (key, *i))
-            continue;
-
-        g_hash_table_insert (hash, g_strdup (key), g_strdup (value));
-    }
-}
-
-GHashTable *
-advanced_dialog_new_hash_from_connection (NMConnection *connection,
-                                          GError **error)
-{
-    GHashTable *hash;
-    NMSettingVPN *s_vpn;
-    //const char *secret;
-
-    hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-
-    s_vpn = (NMSettingVPN *) nm_connection_get_setting (connection, NM_TYPE_SETTING_VPN);
-    nm_setting_vpn_foreach_data_item (s_vpn, copy_values, hash);
-
-    /* HTTP Proxy password is special */
-    /*secret = nm_setting_vpn_get_secret (s_vpn, NM_IPOP_KEY_HTTP_PROXY_PASSWORD);
-    if (secret) {
-        g_hash_table_insert (hash,
-                             g_strdup (NM_IPOP_KEY_HTTP_PROXY_PASSWORD),
-                             g_strdup (secret));
-    }*/
-
-    return hash;
-}
-
-static void
-port_toggled_cb (GtkWidget *check, gpointer user_data)
-{
-	GtkBuilder *builder = (GtkBuilder *) user_data;
-	GtkWidget *widget;
-
-	widget = GTK_WIDGET (gtk_builder_get_object (builder, "port_spinbutton"));
-	gtk_widget_set_sensitive (widget, gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check)));
-}
-
-//static void
-//tunmtu_toggled_cb (GtkWidget *check, gpointer user_data)
-//{
-//	GtkBuilder *builder = (GtkBuilder *) user_data;
-//	GtkWidget *widget;
-
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "tunmtu_spinbutton"));
-//	gtk_widget_set_sensitive (widget, gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check)));
-//}
-
-//static void
-//fragment_toggled_cb (GtkWidget *check, gpointer user_data)
-//{
-//	GtkBuilder *builder = (GtkBuilder *) user_data;
-//	GtkWidget *widget;
-
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "fragment_spinbutton"));
-//	gtk_widget_set_sensitive (widget, gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check)));
-//}
-
-//static void
-//reneg_toggled_cb (GtkWidget *check, gpointer user_data)
-//{
-//	GtkBuilder *builder = (GtkBuilder *) user_data;
-//	GtkWidget *widget;
-
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "reneg_spinbutton"));
-//	gtk_widget_set_sensitive (widget, gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check)));
-//}
-
 //static const char *
-//nm_find_ipop (void)
+//find_tag (const char *tag, const char *buf, gsize len)
 //{
-//    static const char *ipop_binary_paths[] = {
-//        "/usr/sbin/ipop/ipop-tincan",
-//		"/sbin/ipop",
-//		NULL
-//	};
-//	const char  **ipop_binary = ipop_binary_paths;
+//	gsize i, taglen;
 
-//	while (*ipop_binary != NULL) {
-//		if (g_file_test (*ipop_binary, G_FILE_TEST_EXISTS))
-//			break;
-//		ipop_binary++;
+//	taglen = strlen (tag);
+//	if (len < taglen)
+//		return NULL;
+
+//	for (i = 0; i < len - taglen + 1; i++) {
+//		if (memcmp (buf + i, tag, taglen) == 0)
+//			return buf + i;
 //	}
-
-//	return *ipop_binary;
+//	return NULL;
 //}
 
-//#define TLS_CIPHER_COL_NAME 0
-//#define TLS_CIPHER_COL_DEFAULT 1
+//static const char *pem_rsa_key_begin = "-----BEGIN RSA PRIVATE KEY-----";
+//static const char *pem_dsa_key_begin = "-----BEGIN DSA PRIVATE KEY-----";
+//static const char *pem_pkcs8_key_begin = "-----BEGIN ENCRYPTED PRIVATE KEY-----";
+//static const char *pem_cert_begin = "-----BEGIN CERTIFICATE-----";
+//static const char *pem_unenc_key_begin = "-----BEGIN PRIVATE KEY-----";
 
-//static void
-//populate_cipher_combo (GtkComboBox *box, const char *user_cipher)
+//static gboolean
+//tls_default_filter (const GtkFileFilterInfo *filter_info, gpointer data)
 //{
-//	GtkListStore *store;
-//	GtkTreeIter iter;
-//	const char *ipop_binary = NULL;
-//	gchar *tmp, **items, **item;
-//	gboolean user_added = FALSE;
-//	char *argv[3];
-//	GError *error = NULL;
-//	gboolean success, found_blank = FALSE;
+//	char *contents = NULL, *p, *ext;
+//	gsize bytes_read = 0;
+//	gboolean show = FALSE;
+////	gboolean pkcs_allowed = GPOINTER_TO_UINT (data);
+//	struct stat statbuf;
 
-//	ipop_binary = nm_find_ipop ();
-//	if (!ipop_binary)
-//		return;
+//	if (!filter_info->filename)
+//		return FALSE;
 
-//	argv[0] = (char *) ipop_binary;
-//	argv[1] = "--show-ciphers";
-//	argv[2] = NULL;
+//	p = strrchr (filter_info->filename, '.');
+//	if (!p)
+//		return FALSE;
 
-//	success = g_spawn_sync ("/", argv, NULL, 0, NULL, NULL, &tmp, NULL, NULL, &error);
-//	if (!success) {
-//		g_warning ("%s: couldn't determine ciphers: %s", __func__, error->message);
-//		g_error_free (error);
-//		return;
+//	ext = g_ascii_strdown (p, -1);
+//	if (!ext)
+//		return FALSE;
+
+////	if (pkcs_allowed && !strcmp (ext, ".p12") && is_pkcs12 (filter_info->filename)) {
+////		g_free (ext);
+////		return TRUE;
+////	}
+
+//	if (strcmp (ext, ".pem") && strcmp (ext, ".crt") && strcmp (ext, ".key") && strcmp (ext, ".cer")) {
+//		g_free (ext);
+//		return FALSE;
+//	}
+//	g_free (ext);
+
+//	/* Ignore files that are really large */
+//	if (!stat (filter_info->filename, &statbuf)) {
+//		if (statbuf.st_size > 500000)
+//			return FALSE;
 //	}
 
-//	store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_INT);
-//	gtk_combo_box_set_model (box, GTK_TREE_MODEL (store));
+//	if (!g_file_get_contents (filter_info->filename, &contents, &bytes_read, NULL))
+//		return FALSE;
 
-//	/* Add default option which won't pass --cipher to ipop */
-//	gtk_list_store_append (store, &iter);
-//	gtk_list_store_set (store, &iter,
-//	                    TLS_CIPHER_COL_NAME, _("Default"),
-//	                    TLS_CIPHER_COL_DEFAULT, TRUE, -1);
+//	if (bytes_read < 400)  /* needs to be lower? */
+//		goto out;
 
-//	items = g_strsplit (tmp, "\n", 0);
-//	g_free (tmp);
-
-//	for (item = items; *item; item++) {
-//		char *space = strchr (*item, ' ');
-
-//		/* Don't add anything until after the first blank line */
-//		if (!found_blank) {
-//			if (!strlen (*item))
-//				found_blank = TRUE;
-//			continue;
-//		}
-
-//		if (space)
-//			*space = '\0';
-
-//		if (strlen (*item)) {
-//			gtk_list_store_append (store, &iter);
-//			gtk_list_store_set (store, &iter,
-//			                    TLS_CIPHER_COL_NAME, *item,
-//			                    TLS_CIPHER_COL_DEFAULT, FALSE, -1);
-//			if (user_cipher && !strcmp (*item, user_cipher)) {
-//				gtk_combo_box_set_active_iter (box, &iter);
-//				user_added = TRUE;
-//			}
-//		}
+//	/* Check for PEM signatures */
+//	if (find_tag (pem_rsa_key_begin, (const char *) contents, bytes_read)) {
+//		show = TRUE;
+//		goto out;
 //	}
 
-//	/* Add the user-specified cipher if it exists wasn't found by ipop */
-//	if (user_cipher && !user_added) {
-//		gtk_list_store_insert (store, &iter, 1);
-//		gtk_list_store_set (store, &iter,
-//		                    TLS_CIPHER_COL_NAME, user_cipher,
-//		                    TLS_CIPHER_COL_DEFAULT, FALSE -1);
-//		gtk_combo_box_set_active_iter (box, &iter);
-//	} else if (!user_added) {
-//		gtk_combo_box_set_active (box, 0);
+//	if (find_tag (pem_dsa_key_begin, (const char *) contents, bytes_read)) {
+//		show = TRUE;
+//		goto out;
 //	}
 
-//	g_object_unref (G_OBJECT (store));
-//	g_strfreev (items);
+//	if (find_tag (pem_cert_begin, (const char *) contents, bytes_read)) {
+//		show = TRUE;
+//		goto out;
+//	}
+
+//	if (find_tag (pem_pkcs8_key_begin, (const char *) contents, bytes_read)) {
+//		show = TRUE;
+//		goto out;
+//	}
+
+//	if (find_tag (pem_unenc_key_begin, (const char *) contents, bytes_read)) {
+//		show = TRUE;
+//		goto out;
+//	}
+
+//out:
+//	g_free (contents);
+//	return show;
 //}
 
-//#define HMACAUTH_COL_NAME 0
-//#define HMACAUTH_COL_VALUE 1
-//#define HMACAUTH_COL_DEFAULT 2
-
-//static void
-//populate_hmacauth_combo (GtkComboBox *box, const char *hmacauth)
+//GtkFileFilter *
+//tls_file_chooser_filter_new (gboolean pkcs_allowed)
 //{
-//	GtkListStore *store;
-//	GtkTreeIter iter;
-//	gboolean active_initialized = FALSE;
-//	const char **item;
-//	static const char *items[] = {
-//		NM_IPOP_AUTH_NONE,
-//		NM_IPOP_AUTH_RSA_MD4,
-//		NM_IPOP_AUTH_MD5,
-//		NM_IPOP_AUTH_SHA1,
-//		NM_IPOP_AUTH_SHA224,
-//		NM_IPOP_AUTH_SHA256,
-//		NM_IPOP_AUTH_SHA384,
-//		NM_IPOP_AUTH_SHA512,
-//		NM_IPOP_AUTH_RIPEMD160,
-//		NULL
-//	};
+//	GtkFileFilter *filter;
 
-//	store = gtk_list_store_new (3, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_BOOLEAN);
-//	gtk_combo_box_set_model (box, GTK_TREE_MODEL (store));
+//	filter = gtk_file_filter_new ();
+//	gtk_file_filter_add_custom (filter, GTK_FILE_FILTER_FILENAME, tls_default_filter, GUINT_TO_POINTER (pkcs_allowed), NULL);
+//	gtk_file_filter_set_name (filter, pkcs_allowed ? _("PEM or PKCS#12 certificates (*.pem, *.crt, *.key, *.cer, *.p12)")
+//	                                               : _("PEM certificates (*.pem, *.crt, *.key, *.cer)"));
+//	return filter;
+//}
 
-//	/* Add default option which won't pass --auth to ipop */
-//	gtk_list_store_append (store, &iter);
-//	gtk_list_store_set (store, &iter,
-//	                    HMACAUTH_COL_NAME, _("Default"),
-//	                    HMACAUTH_COL_DEFAULT, TRUE, -1);
 
-//	/* Add options */
-//	for (item = items; *item; item++) {
-//		const char *name = NULL;
+//static const char *sk_key_begin = "-----BEGIN IPOP Static key V1-----";
 
-//		if (!strcmp (*item, NM_IPOP_AUTH_NONE))
-//			name = _("None");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_RSA_MD4))
-//			name = _("RSA MD-4");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_MD5))
-//			name = _("MD-5");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_SHA1))
-//			name = _("SHA-1");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_SHA224))
-//			name = _("SHA-224");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_SHA256))
-//			name = _("SHA-256");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_SHA384))
-//			name = _("SHA-384");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_SHA512))
-//			name = _("SHA-512");
-//		else if (!strcmp (*item, NM_IPOP_AUTH_RIPEMD160))
-//			name = _("RIPEMD-160");
-//		else
-//			g_assert_not_reached ();
+//static gboolean
+//sk_default_filter (const GtkFileFilterInfo *filter_info, gpointer data)
+//{
+//	int fd;
+//	unsigned char buffer[1024];
+//	ssize_t bytes_read;
+//	gboolean show = FALSE;
+//	char *p;
+//	char *ext;
 
-//		gtk_list_store_append (store, &iter);
-//		gtk_list_store_set (store, &iter,
-//		                    HMACAUTH_COL_NAME, name,
-//		                    HMACAUTH_COL_VALUE, *item,
-//		                    HMACAUTH_COL_DEFAULT, FALSE, -1);
-//		if (hmacauth && !strcmp (*item, hmacauth)) {
-//			gtk_combo_box_set_active_iter (box, &iter);
-//			active_initialized = TRUE;
-//		}
+//	if (!filter_info->filename)
+//		return FALSE;
+
+//	p = strrchr (filter_info->filename, '.');
+//	if (!p)
+//		return FALSE;
+
+//	ext = g_ascii_strdown (p, -1);
+//	if (!ext)
+//		return FALSE;
+//	if (strcmp (ext, ".key")) {
+//		g_free (ext);
+//		return FALSE;
+//	}
+//	g_free (ext);
+
+//	fd = open (filter_info->filename, O_RDONLY);
+//	if (fd < 0)
+//		return FALSE;
+
+//	bytes_read = read (fd, buffer, sizeof (buffer) - 1);
+//	if (bytes_read < 400)  /* needs to be lower? */
+//		goto out;
+//	buffer[bytes_read] = '\0';
+
+//	/* Check for PEM signatures */
+//	if (find_tag (sk_key_begin, (const char *) buffer, bytes_read)) {
+//		show = TRUE;
+//		goto out;
 //	}
 
-//	if (!active_initialized)
-//		gtk_combo_box_set_active (box, 0);
-
-//	g_object_unref (store);
+//out:
+//	close (fd);
+//	return show;
 //}
 
-//static void
-//tls_auth_toggled_cb (GtkWidget *widget, gpointer user_data)
+//GtkFileFilter *
+//sk_file_chooser_filter_new (void)
 //{
-//	GtkBuilder *builder = (GtkBuilder *) user_data;
-//	gboolean use_auth = FALSE;
+//	GtkFileFilter *filter;
 
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "tls_auth_checkbutton"));
-//	use_auth = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget));
-
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "tls_dir_help_label"));
-//	gtk_widget_set_sensitive (widget, use_auth);
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "direction_label"));
-//	gtk_widget_set_sensitive (widget, use_auth);
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "tls_auth_label"));
-//	gtk_widget_set_sensitive (widget, use_auth);
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "tls_auth_chooser"));
-//	gtk_widget_set_sensitive (widget, use_auth);
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "direction_combo"));
-//	gtk_widget_set_sensitive (widget, use_auth);
+//	filter = gtk_file_filter_new ();
+//	gtk_file_filter_add_custom (filter, GTK_FILE_FILTER_FILENAME, sk_default_filter, NULL, NULL);
+//	gtk_file_filter_set_name (filter, _("IPOP Static Keys (*.key)"));
+//	return filter;
 //}
 
-//#define PROXY_TYPE_NONE  0
-//#define PROXY_TYPE_HTTP  1
-//#define PROXY_TYPE_SOCKS 2
+//static const char *advanced_keys[] = {
+//    NM_IPOP_KEY_IP4_ADDRESS,
+//    NM_IPOP_KEY_IP4_NETMASK,
+//    NM_IPOP_KEY_XMPP_HOST,
+//    NM_IPOP_KEY_XMPP_USERNAME,
+//    NM_IPOP_KEY_XMPP_PASSWORD,
+//    NULL
+//};
 
 //static void
-//proxy_type_changed (GtkComboBox *combo, gpointer user_data)
+//copy_values (const char *key, const char *value, gpointer user_data)
 //{
-//	GtkBuilder *builder = GTK_BUILDER (user_data);
-//	gboolean sensitive;
+//    GHashTable *hash = (GHashTable *) user_data;
+//    const char **i;
+
+//    for (i = &advanced_keys[0]; *i; i++) {
+//        if (strcmp (key, *i))
+//            continue;
+
+//        g_hash_table_insert (hash, g_strdup (key), g_strdup (value));
+//    }
+//}
+
+//GHashTable *
+//advanced_dialog_new_hash_from_connection (NMConnection *connection,
+//                                          GError **error)
+//{
+//    GHashTable *hash;
+//    NMSettingVPN *s_vpn;
+//    //const char *secret;
+
+//    hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
+
+//    s_vpn = (NMSettingVPN *) nm_connection_get_setting (connection, NM_TYPE_SETTING_VPN);
+//    nm_setting_vpn_foreach_data_item (s_vpn, copy_values, hash);
+
+//    /* HTTP Proxy password is special */
+//    /*secret = nm_setting_vpn_get_secret (s_vpn, NM_IPOP_KEY_HTTP_PROXY_PASSWORD);
+//    if (secret) {
+//        g_hash_table_insert (hash,
+//                             g_strdup (NM_IPOP_KEY_HTTP_PROXY_PASSWORD),
+//                             g_strdup (secret));
+//    }*/
+
+//    return hash;
+//}
+
+
+//GHashTable *
+//advanced_dialog_new_hash_from_dialog(GtkWidget *dialog, GError **error)
+//{
+//	GHashTable *hash;
 //	GtkWidget *widget;
-//	guint32 i = 0;
-//	int active;
-//	const char *widgets[] = {
-//		"proxy_desc_label", "proxy_server_label", "proxy_server_entry",
-//		"proxy_port_label", "proxy_port_spinbutton", "proxy_retry_checkbutton",
-//		"proxy_username_label", "proxy_password_label", "proxy_username_entry",
-//		"proxy_password_entry", "show_proxy_password", NULL
-//	};
-//	const char *user_pass_widgets[] = {
-//		"proxy_username_label", "proxy_password_label", "proxy_username_entry",
-//		"proxy_password_entry", "show_proxy_password", NULL
-//	};
+//    GtkBuilder *builder;
 
-//	active = gtk_combo_box_get_active (combo);
-//	sensitive = (active > PROXY_TYPE_NONE);
+//	g_return_val_if_fail (dialog != NULL, NULL);
+//	if (error)
+//		g_return_val_if_fail (*error == NULL, NULL);
 
-//	while (widgets[i]) {
-//		widget = GTK_WIDGET (gtk_builder_get_object (builder, widgets[i++]));
-//		gtk_widget_set_sensitive (widget, sensitive);
-//	}
+//	builder = g_object_get_data (G_OBJECT (dialog), "builder");
+//	g_return_val_if_fail (builder != NULL, NULL);
 
-//	/* Additionally user/pass widgets need to be disabled for SOCKS */
-//	if (active == PROXY_TYPE_SOCKS) {
-//		i = 0;
-//		while (user_pass_widgets[i]) {
-//			widget = GTK_WIDGET (gtk_builder_get_object (builder, user_pass_widgets[i++]));
-//			gtk_widget_set_sensitive (widget, FALSE);
-//		}
-//	}
+//	hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
 
-//	/* Proxy options require TCP; but don't reset the TCP checkbutton
-//	 * to false when the user disables HTTP proxy; leave it checked.
-//	 */
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "tcp_checkbutton"));
-//	if (sensitive == TRUE)
-//		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
-//	gtk_widget_set_sensitive (widget, !sensitive);
+//	return hash;
 //}
-
-//static void
-//show_proxy_password_toggled_cb (GtkCheckButton *button, gpointer user_data)
-//{
-//	GtkBuilder *builder = (GtkBuilder *) user_data;
-//	GtkWidget *widget;
-//	gboolean visible;
-
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "proxy_password_entry"));
-//	g_assert (widget);
-
-//	visible = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button));
-//	gtk_entry_set_visibility (GTK_ENTRY (widget), visible);
-//}
-
-#define TA_DIR_COL_NAME 0
-#define TA_DIR_COL_NUM 1
-
-GtkWidget *
-advanced_dialog_new (GHashTable *hash, const char *contype)
-{
-	GtkBuilder *builder;
-	GtkWidget *dialog = NULL;
-	char *ui_file = NULL;
-    GtkWidget *widget;
-    const char *value;
-	GError *error = NULL;
-
-	g_return_val_if_fail (hash != NULL, NULL);
-
-	ui_file = g_strdup_printf ("%s/%s", UIDIR, "nm-ipop-dialog.ui");
-	builder = gtk_builder_new ();
-
-	gtk_builder_set_translation_domain (builder, GETTEXT_PACKAGE);
-
-	if (!gtk_builder_add_from_file (builder, ui_file, &error)) {
-		g_warning ("Couldn't load builder file: %s", error->message);
-		g_error_free (error);
-		g_object_unref (G_OBJECT (builder));
-		goto out;
-	}
-
-	dialog = GTK_WIDGET (gtk_builder_get_object (builder, "ipop-advanced-dialog"));
-	if (!dialog) {
-		g_object_unref (G_OBJECT (builder));
-		goto out;
-	}
-	gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
-
-	g_object_set_data_full (G_OBJECT (dialog), "builder",
-	                        builder, (GDestroyNotify) g_object_unref);
-	g_object_set_data (G_OBJECT (dialog), "connection-type", GINT_TO_POINTER (contype));
-
-    //widget = GTK_WIDGET (gtk_builder_get_object (builder, "reneg_checkbutton"));
-    //g_signal_connect (G_OBJECT (widget), "toggled", G_CALLBACK (reneg_toggled_cb), builder);
-
-//	value = g_hash_table_lookup (hash, NM_IPOP_KEY_RENEG_SECONDS);
-//	if (value && strlen (value)) {
-//		long int tmp;
-
-//		errno = 0;
-//		tmp = strtol (value, NULL, 10);
-//		if (errno == 0 && tmp >= 0 && tmp <= 604800) {  /* up to a week? */
-//			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
-
-//			widget = GTK_WIDGET (gtk_builder_get_object (builder, "reneg_spinbutton"));
-//			gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget), (gdouble) tmp);
-//		}
-//		gtk_widget_set_sensitive (widget, TRUE);
-//	} else {
-//		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), FALSE);
-
-//		widget = GTK_WIDGET (gtk_builder_get_object (builder, "reneg_spinbutton"));
-//		gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget), 0.0);
-//		gtk_widget_set_sensitive (widget, FALSE);
-//	}
-
-	widget = GTK_WIDGET (gtk_builder_get_object (builder, "port_checkbutton"));
-	g_signal_connect (G_OBJECT (widget), "toggled", G_CALLBACK (port_toggled_cb), builder);
-
-	value = g_hash_table_lookup (hash, NM_IPOP_KEY_PORT);
-	if (value && strlen (value)) {
-		long int tmp;
-
-		errno = 0;
-		tmp = strtol (value, NULL, 10);
-		if (errno == 0 && tmp > 0 && tmp < 65536 && tmp != 1194) {
-			gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
-
-			widget = GTK_WIDGET (gtk_builder_get_object (builder, "port_spinbutton"));
-			gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget),
-			                           (gdouble) tmp);
-		}
-		gtk_widget_set_sensitive (widget, TRUE);
-	} else {
-		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), FALSE);
-
-		widget = GTK_WIDGET (gtk_builder_get_object (builder, "port_spinbutton"));
-		gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget), 1194.0);
-		gtk_widget_set_sensitive (widget, FALSE);
-	}
-
-//	value = g_hash_table_lookup (hash, NM_IPOP_KEY_XMPP_HOST);
-//	if (value && !strcmp (value, "yes")) {
-//		widget = GTK_WIDGET (gtk_builder_get_object (builder, "mssfix_checkbutton"));
-//		gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
-//	}
-
-out:
-	g_free (ui_file);
-	return dialog;
-}
-
-GHashTable *
-advanced_dialog_new_hash_from_dialog (GtkWidget *dialog, GError **error)
-{
-	GHashTable *hash;
-	GtkWidget *widget;
-    GtkBuilder *builder;
-
-	g_return_val_if_fail (dialog != NULL, NULL);
-	if (error)
-		g_return_val_if_fail (*error == NULL, NULL);
-
-	builder = g_object_get_data (G_OBJECT (dialog), "builder");
-	g_return_val_if_fail (builder != NULL, NULL);
-
-	hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, g_free);
-
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "reneg_checkbutton"));
-//	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget))) {
-//		int reneg_seconds;
-
-//		widget = GTK_WIDGET (gtk_builder_get_object (builder, "reneg_spinbutton"));
-//		reneg_seconds = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget));
-//		g_hash_table_insert (hash, g_strdup (NM_IPOP_KEY_RENEG_SECONDS), g_strdup_printf ("%d", reneg_seconds));
-//	}
-
-	widget = GTK_WIDGET (gtk_builder_get_object (builder, "port_checkbutton"));
-	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget))) {
-		int port;
-
-		widget = GTK_WIDGET (gtk_builder_get_object (builder, "port_spinbutton"));
-		port = gtk_spin_button_get_value_as_int (GTK_SPIN_BUTTON (widget));
-		g_hash_table_insert (hash, g_strdup (NM_IPOP_KEY_PORT), g_strdup_printf ("%d", port));
-	}
-
-//	widget = GTK_WIDGET (gtk_builder_get_object (builder, "lzo_checkbutton"));
-//	if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)))
-//		g_hash_table_insert (hash, g_strdup (NM_IPOP_KEY_COMP_LZO), g_strdup ("yes"));
-
-
-	return hash;
-}
 

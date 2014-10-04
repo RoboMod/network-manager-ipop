@@ -27,7 +27,7 @@
 #endif
 
 #include <glib/gi18n.h>
-#include <gio/gio.h>
+#include <glib/gprintf.h>
 #include <json-glib/json-glib.h>
 #include <dbus/dbus.h>
 #include <dbus/dbus-glib-lowlevel.h>
@@ -46,6 +46,7 @@
 #include <arpa/inet.h>
 #include <ctype.h>
 #include <errno.h>
+#include <limits.h>
 
 #include <NetworkManager.h>
 #include <NetworkManagerVPN.h>
@@ -102,28 +103,31 @@ typedef struct {
 
 /**
  * nm service properties and their features
+ *
  * "-flags" marks the state
  * possible values are NMSettingSecretFlags from libnm-util/nm-setting.h
  *  - NM_SETTING_SECRET_FLAG_NONE
  *  - NM_SETTING_SECRET_FLAG_AGENT_OWNED
  *  - NM_SETTING_SECRET_FLAG_NOT_SAVED
  *  - NM_SETTING_SECRET_FLAG_NOT_REQUIRED
+ *
+ * ip4 netmask could be given as address or prefix
  */
 static ValidProperty valid_properties[] = {
-    {NM_IPOP_KEY_LOCAL_IP,                 G_TYPE_STRING,   0,  0,      TRUE},
-    {NM_IPOP_KEY_PORT,                     G_TYPE_INT,      1,  65535,  FALSE},
-    {NM_IPOP_KEY_XMPP_HOST,                G_TYPE_STRING,   0,  0,      TRUE},
-    {NM_IPOP_KEY_XMPP_USERNAME,            G_TYPE_STRING,   0,  0,      FALSE},
-    {NM_IPOP_KEY_XMPP_PASSWORD"-flags",    G_TYPE_STRING,   0,  0,      FALSE},
-    {NULL,                                 G_TYPE_NONE,     0,  0,      FALSE}
+    {NM_IPOP_KEY_IP4_ADDRESS,           G_TYPE_STRING,  0,  0,  TRUE},
+    {NM_IPOP_KEY_IP4_NETMASK,           G_TYPE_STRING,  0,  0,  TRUE},
+    {NM_IPOP_KEY_XMPP_HOST,             G_TYPE_STRING,  0,  0,  TRUE},
+    {NM_IPOP_KEY_XMPP_USERNAME,         G_TYPE_STRING,  0,  0,  FALSE},
+    {NM_IPOP_KEY_XMPP_PASSWORD"-flags", G_TYPE_STRING,  0,  0,  FALSE},
+    {NULL,                              G_TYPE_NONE,    0,  0,  FALSE}
 };
 
 /**
  * nm service secrets and their features
  */
 static ValidProperty valid_secrets[] = {
-    {NM_IPOP_KEY_XMPP_PASSWORD,            G_TYPE_STRING,   0,   0,      FALSE},
-    {NULL,                                 G_TYPE_NONE,     0,   0,      FALSE}
+    {NM_IPOP_KEY_XMPP_PASSWORD,         G_TYPE_STRING,  0,  0,  FALSE},
+    {NULL,                              G_TYPE_NONE,    0,  0,  FALSE}
 };
 
 /**
@@ -393,11 +397,19 @@ static gboolean send_config_to_nm(NMIPOPPlugin* plugin) {
     if (val)
         g_hash_table_insert (ip6config, NM_VPN_PLUGIN_IP6_CONFIG_ADDRESS, val);
 
-    // netmask
-    val = g_slice_new0 (GValue);
-    g_value_init (val, G_TYPE_UINT);
-    g_value_set_uint (val, 24);
-    g_hash_table_insert (ip4config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);
+    /* TODO: gather further informations about connection
+    // netmask (with conversion if given as address)
+    tmp = "255.255.255.0";
+    val = g_slice_new0(GValue);
+    g_value_init(val, G_TYPE_UINT);
+    if (tmp && !strncmp (tmp, "255.", 4)) {
+        guint32 addr;
+        addr = g_value_get_uint(val);
+        g_value_set_uint(val, nm_utils_ip4_netmask_to_prefix(addr));
+    } else {
+        g_value_set_uint(val, 24);
+    }
+    g_hash_table_insert(ip4config, NM_VPN_PLUGIN_IP4_CONFIG_PREFIX, val);*/
 
     // prevent from getting default route
     g_hash_table_insert (config, NM_VPN_PLUGIN_IP4_CONFIG_NEVER_DEFAULT, bool_to_gvalue (TRUE));
@@ -452,10 +464,7 @@ static gboolean nm_ipop_connect_timer_cb(gpointer data) {
 
     // open socket and start listener
     socket_fd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
-    //socket = g_socket_new(G_SOCKET_FAMILY_IPV4, G_SOCKET_TYPE_DATAGRAM, G_SOCKET_PROTOCOL_UDP, NULL);
-    // stop cause setting up socket failed
     if (socket_fd < 0) {
-    //if(socket == NULL) {
         priv->connect_timer = 0;
         return FALSE;
     }
@@ -744,12 +753,15 @@ static gboolean nm_ipop_start_svpn_controller(NMIPOPPlugin* plugin,
     const char *svpn_binary, *tmp, *password;
     gchar* string;
     GPtrArray* args;
+    JsonBuilder* json_builder;
+    JsonGenerator* json_generator;
+    JsonNode* json_root;
     GSource* svpn_watch;
     GPid pid;
     gint in, out;
     GIOChannel *in_ch, *out_ch;
     gsize size;
-    int i;
+    int i, netmask;
     const char *svpn_binary_paths[] = {
         "/usr/sbin/ipop/svpn_controller.py",
         //"/sbin/svpn_controller.py",
@@ -771,22 +783,68 @@ static gboolean nm_ipop_start_svpn_controller(NMIPOPPlugin* plugin,
     args = g_ptr_array_new();
     nm_ipop_add_arg(args, svpn_binary);
 
-    // configure file as argument, maybe later again
-    //nm_ipop_add_optional_arg(args, "-c", "~/Programing/C++/IPOP/config.json");
+    // controller should use stdout to ask for password
+    nm_ipop_add_arg(args, "--pwdstdout");
+
+    // other parameters have to be part of a json formatted string
+    json_builder = json_builder_new();
+    json_builder_begin_object(json_builder);
 
     tmp = nm_setting_vpn_get_data_item(s_vpn, NM_IPOP_KEY_XMPP_HOST);
     if (tmp && strlen(tmp)) {
-        nm_ipop_add_optional_arg(args, "--host", tmp);
+        //nm_ipop_add_optional_arg(args, "--host", tmp);
+        json_builder_set_member_name(json_builder, "xmpp_host");
+        json_builder_add_string_value(json_builder, tmp);
     }
 
     tmp = nm_setting_vpn_get_data_item(s_vpn, NM_IPOP_KEY_XMPP_USERNAME);
     if (tmp && strlen(tmp)) {
-        nm_ipop_add_optional_arg(args, "--username", tmp);
+        //nm_ipop_add_optional_arg(args, "--username", tmp);
+        json_builder_set_member_name(json_builder, "xmpp_username");
+        json_builder_add_string_value(json_builder, tmp);
     }
 
-    // controller should use stdout to ask for password
-    nm_ipop_add_arg(args, "--pwdstdout");
+    tmp = nm_setting_vpn_get_data_item(s_vpn, NM_IPOP_KEY_IP4_ADDRESS);
+    if (tmp && strlen(tmp)) {
+        //nm_ipop_add_optional_arg(args, "--ip4address", tmp);
+        json_builder_set_member_name(json_builder, "ip4");
+        json_builder_add_string_value(json_builder, tmp);
+    }
 
+    tmp = nm_setting_vpn_get_data_item(s_vpn, NM_IPOP_KEY_IP4_NETMASK);
+    if (tmp && strlen(tmp)) {
+        if (tmp && !strncmp(tmp, "255.", 4)) {
+            struct in_addr addr;
+            if (inet_pton(AF_INET, tmp, &addr) == 1) {
+                netmask = nm_utils_ip4_netmask_to_prefix(addr.s_addr);
+                json_builder_set_member_name(json_builder, "ip4_mask");
+                json_builder_add_int_value(json_builder, netmask);
+            }
+        } else {
+            errno = 0;
+            netmask = strtol(tmp, NULL, 10);
+            if (errno == 0) {
+                //nm_ipop_add_optional_arg(args, "--ip4netmask", tmp);
+                json_builder_set_member_name(json_builder, "ip4_mask");
+                json_builder_add_int_value(json_builder, netmask);
+            }
+        }
+    }
+
+    json_builder_end_object(json_builder);
+    json_generator = json_generator_new();
+    json_root = json_builder_get_root(json_builder);
+    json_generator_set_root(json_generator, json_root);
+    string = json_generator_to_data(json_generator, NULL);
+    if(debug) g_message("generated json parameter string: %s", string);
+
+    json_node_free(json_root);
+    g_object_unref(json_generator);
+    g_object_unref(json_builder);
+
+    nm_ipop_add_optional_arg(args, "-s", string);
+
+    // password will be needed later when svpn_controller will ask for it
     password = nm_setting_vpn_get_secret(s_vpn, NM_IPOP_KEY_XMPP_PASSWORD);
     if (password && strlen(password)) {
         password = g_strdup_printf("%s\n", password);
