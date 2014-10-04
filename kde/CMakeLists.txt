@@ -10,12 +10,18 @@ include(KDE4Defaults)
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR} ${CMAKE_MODULE_PATH})
 
 pkg_check_modules(NETWORKMANAGERQT REQUIRED NetworkManagerQt)
-if (NOT NETWORKMANAGERQT_FOUND)
+if(NOT NETWORKMANAGERQT_FOUND)
     message(FATAL_ERROR "ERROR: NetworkManagerQt not found. http://projects.kde.org/search?q=networkmanager&scope=all&all_words=1&projects=1&submit=Submit")
-endif (NOT NETWORKMANAGERQT_FOUND)
+endif(NOT NETWORKMANAGERQT_FOUND)
 
-include_directories(${KDE4_INCLUDES} ${NETWORKMANAGERQT_INCLUDE_DIRS} ${CMAKE_INCLUDE_PATH})
-link_directories(${NETWORKMANAGERQT_LIBRARY_DIRS} ${CMAKE_LIBRARY_PATH})
+#find_package(QJson REQUIRED)
+pkg_check_modules(QJSON REQUIRED QJson)
+if(NOT QJSON_FOUND)
+    message(FATAL ERROR "ERROR: QJson not found.")
+endif(NOT QJSON_FOUND)
+
+include_directories(${KDE4_INCLUDES} ${NETWORKMANAGERQT_INCLUDE_DIRS} ${QJSON_INCLUDE_DIRS} ${CMAKE_INCLUDE_PATH})
+link_directories(${NETWORKMANAGERQT_LIBRARY_DIRS} ${QJSON_LIBRARY_DIRS} ${CMAKE_LIBRARY_PATH})
 
 find_package(NetworkManager ${MINIMUM_NM_VERSION_REQUIRED})
 
@@ -23,9 +29,9 @@ find_package(NetworkManager ${MINIMUM_NM_VERSION_REQUIRED})
 
 if(NETWORKMANAGER_FOUND)
     PKG_SEARCH_MODULE( NM-UTIL libnm-util )
-    if (NOT NM-UTIL_FOUND)
+    if(NOT NM-UTIL_FOUND)
         message(FATAL_ERROR "Could NOT find libnm-util, check FindPkgConfig output above!")
-    endif (NOT NM-UTIL_FOUND)
+    endif(NOT NM-UTIL_FOUND)
 
     if(${NETWORKMANAGER_VERSION} VERSION_GREATER ${MINIMUM_NM_VERSION_REQUIRED} OR
         ${NETWORKMANAGER_VERSION} VERSION_EQUAL ${MINIMUM_NM_VERSION_REQUIRED})

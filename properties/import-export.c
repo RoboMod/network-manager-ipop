@@ -96,7 +96,7 @@ NMConnection* do_import(const char* path, GError** error) {
         json_reader_end_member(json_reader);
 
         if(json_reader_read_member(json_reader, XMPP_PASSWORD_TAG)) {
-            nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_XMPP_PASSWORD, json_reader_get_string_value(json_reader));
+            nm_setting_vpn_add_secret(s_vpn, NM_IPOP_KEY_XMPP_PASSWORD, json_reader_get_string_value(json_reader));
             have_pass = TRUE;
         }
         json_reader_end_member(json_reader);

@@ -38,6 +38,8 @@ cmake_uninstall.cmake
 EnabledFeatures.txt
 *_automoc.*
 *.moc
+moc_*
+ui_*
 
 kde/lib/
 auth-dialog/nm-ipop-auth-dialog

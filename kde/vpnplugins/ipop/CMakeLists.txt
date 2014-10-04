@@ -12,7 +12,8 @@ kde4_add_ui_files(ipop_SRCS ipopprop.ui)
 
 kde4_add_plugin(networkmanagement_ipopui ${ipop_SRCS})
 
-target_link_libraries(networkmanagement_ipopui solidcontrolnm09 ${KDE4_KIO_LIBS} knmui knminternals )
+target_link_libraries(networkmanagement_ipopui solidcontrolnm09 ${KDE4_KIO_LIBS} knmui knminternals
+    ${QJSON_LIBRARIES})
 
 install(TARGETS networkmanagement_ipopui  DESTINATION ${PLUGIN_INSTALL_DIR})
 
