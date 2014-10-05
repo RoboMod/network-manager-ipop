@@ -1,13 +1,10 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/***************************************************************************
- * CVSID: $Id: nm-ipop.c 4232 2008-10-29 09:13:40Z tambeti $
- *
- * nm-ipop.c : GNOME UI dialogs for configuring ipop VPN connections
+/* nm-ipop.c : GNOME UI dialogs for configuring ipop VPN connections
  *
  * Copyright (C) 2005 Tim Niemueller <tim@niemueller.de>
  * Copyright (C) 2008 - 2010 Dan Williams, <dcbw@redhat.com>
  * Copyright (C) 2008 - 2011 Red Hat, Inc.
  * Based on work by David Zeuthen, <davidz@redhat.com>
+ * Copyright (C) 2014 Andreas Ihrig <mod.andy@gmx.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,7 +20,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- **************************************************************************/
+ */
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

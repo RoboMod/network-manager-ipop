@@ -1,8 +1,8 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
 /* nm-ipop-service - ipop integration with NetworkManager
  *
  * Copyright (C) 2005 - 2008 Tim Niemueller <tim@niemueller.de>
  * Copyright (C) 2005 - 2008 Dan Williams <dcbw@redhat.com>
+ * Copyright (C) 2014 Andreas Ihrig <mod.andy@gmx.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -38,6 +38,8 @@
 #define NM_DBUS_INTERFACE_IPOP  "org.freedesktop.NetworkManager.ipop"
 #define NM_DBUS_PATH_IPOP       "/org/freedesktop/NetworkManager/ipop"
 
+// ATTENTION: update equal definitions in
+// kde/vpnplugins/ipop/nm-ipop-service.h too!
 #define NM_IPOP_KEY_IP4_ADDRESS "ip4-address"
 #define NM_IPOP_KEY_IP4_NETMASK "ip4-netmask"
 #define NM_IPOP_KEY_XMPP_HOST "xmpp-host"

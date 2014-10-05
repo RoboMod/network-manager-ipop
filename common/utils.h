@@ -1,6 +1,7 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/*
- * Dan Williams <dcbw@redhat.com>
+/* utils.h -- helpers for ipop connections
+ *
+ * Copyright (C) 2010 Red Hat, Inc., Dan Williams <dcbw@redhat.com>
+ * Copyright (C) 2014 Andreas Ihrig <mod.andy@gmx.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +17,6 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2010 Red Hat, Inc.
  */
 
 #ifndef UTILS_H
@@ -24,9 +24,6 @@
 
 #include <glib.h>
 #include <glib-object.h>
-
-//gboolean is_pkcs12 (const char *filepath);
-//gboolean is_encrypted (const char *filename);
 
 GValue* str_to_gvalue(const char *str, gboolean try_convert);
 GValue* addr_to_gvalue(const char *str);
@@ -36,7 +33,8 @@ const char* find_file(const char** file_paths);
 
 void nm_ipop_free_args(GPtrArray *args);
 void nm_ipop_add_arg(GPtrArray *args, const char *arg);
-void nm_ipop_add_optional_arg(GPtrArray *args, const char* option, const char *arg);
+void nm_ipop_add_optional_arg(GPtrArray *args, const char* option,
+                              const char *arg);
 
 #endif  /* UTILS_H */
 

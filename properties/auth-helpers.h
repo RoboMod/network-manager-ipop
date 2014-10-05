@@ -1,7 +1,7 @@
-/* -*- Mode: C; tab-width: 4; indent-tabs-mode: t; c-basic-offset: 4 -*- */
-/***************************************************************************
+/* auth-helpers.h: helpers for password management in properties
  *
  * Copyright (C) 2008 Dan Williams, <dcbw@redhat.com>
+ * Copyright (C) 2014 Andreas Ihrig <mod.andy@gmx.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- **************************************************************************/
+ */
 
 #ifndef _AUTH_HELPERS_H_
 #define _AUTH_HELPERS_H_
@@ -36,33 +36,5 @@ void init_one_pw_combo(GtkBuilder *builder,
                    GtkWidget *entry_widget,
                    ChangedCallback changed_cb,
                    gpointer user_data);
-
-//void tls_pw_init_auth_widget(GtkBuilder *builder,
-//                              GtkSizeGroup *group,
-//                              NMSettingVPN *s_vpn,
-//                              const char *contype,
-//                              const char *prefix,
-//                              ChangedCallback changed_cb,
-//                              gpointer user_data);
-
-//void sk_init_auth_widget(GtkBuilder *builder,
-//                          GtkSizeGroup *group,
-//                          NMSettingVPN *s_vpn,
-//                          ChangedCallback changed_cb,
-//                          gpointer user_data);
-
-//gboolean auth_widget_check_validity(GtkBuilder *builder, const char *contype, GError **error);
-
-//gboolean auth_widget_update_connection(GtkBuilder *builder,
-//                                        const char *contype,
-//                                        NMSettingVPN *s_vpn);
-
-//GtkFileFilter *tls_file_chooser_filter_new(gboolean pkcs_allowed);
-
-//GtkFileFilter *sk_file_chooser_filter_new(void);
-
-//GHashTable *advanced_dialog_new_hash_from_connection(NMConnection *connection, GError **error);
-
-//GHashTable *advanced_dialog_new_hash_from_dialog(GtkWidget *dialog, GError **error);
 
 #endif

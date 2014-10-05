@@ -1,23 +1,26 @@
-/*
-Copyright 2008 Will Stephenson <wstephenson@kde.org>
-Copyright 2011-2012 Rajeesh K Nambiar <rajeeshknambiar@gmail.com>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
-the License or (at your option) version 3 or any later version
-accepted by the membership of KDE e.V. (or its successor approved
-by the membership of KDE e.V.), which shall act as a proxy
-defined in Section 14 of version 3 of the license.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ipop.cpp - import/export ipop connections
+ *
+ * Copyright 2008 Will Stephenson <wstephenson@kde.org>
+ * Copyright 2011-2012 Rajeesh K Nambiar <rajeeshknambiar@gmail.com>
+ * Copyright (C) 2014 Andreas Ihrig <mod.andy@gmx.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License or (at your option) version 3 or any later version
+ * accepted by the membership of KDE e.V. (or its successor approved
+ * by the membership of KDE e.V.), which shall act as a proxy
+ * defined in Section 14 of version 3 of the license.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include "ipop.h"
 
@@ -48,17 +51,20 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 K_PLUGIN_FACTORY( IPOPUiPluginFactory, registerPlugin<IPOPUiPlugin>(); )
 K_EXPORT_PLUGIN( IPOPUiPluginFactory( "networkmanagement_ipopui", "libknetworkmanager" ) )
 
-IPOPUiPlugin::IPOPUiPlugin(QObject * parent, const QVariantList &) : VpnUiPlugin(parent) {}
+IPOPUiPlugin::IPOPUiPlugin(QObject * parent, const QVariantList &)
+    : VpnUiPlugin(parent) {}
 
 IPOPUiPlugin::~IPOPUiPlugin() {}
 
-SettingWidget* IPOPUiPlugin::widget(Knm::Connection * connection, QWidget * parent) {
+SettingWidget* IPOPUiPlugin::widget(Knm::Connection * connection,
+                                    QWidget * parent) {
     IPOPSettingWidget * wid = new IPOPSettingWidget(connection, parent);
     wid->init();
     return wid;
 }
 
-SettingWidget* IPOPUiPlugin::askUser(Knm::Connection * connection, QWidget * parent) {
+SettingWidget* IPOPUiPlugin::askUser(Knm::Connection * connection,
+                                     QWidget * parent) {
     return new IPOPAuthWidget(connection, parent);
 }
 
@@ -94,40 +100,50 @@ QVariantList IPOPUiPlugin::importConnectionSettings(const QString &fileName) {
     }
 
     if(json_result.contains(XMPP_HOST_TAG)) {
-        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_HOST), json_result[XMPP_HOST_TAG].toString());
+        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_HOST),
+                       json_result[XMPP_HOST_TAG].toString());
     }
 
     if(json_result.contains(XMPP_USERNAME_TAG)) {
-        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_USERNAME), json_result[XMPP_USERNAME_TAG].toString());
+        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_USERNAME),
+                       json_result[XMPP_USERNAME_TAG].toString());
     }
 
     if(json_result.contains(XMPP_PASSWORD_TAG)) {
-        secretData.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD), json_result[XMPP_PASSWORD_TAG].toString());
+        secretData.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD),
+                          json_result[XMPP_PASSWORD_TAG].toString());
         have_pass = true;
     }
 
     if(json_result.contains(IP4_ADDRESS_TAG)) {
-        dataMap.insert(QLatin1String(NM_IPOP_KEY_IP4_ADDRESS), json_result[IP4_ADDRESS_TAG].toString());
+        dataMap.insert(QLatin1String(NM_IPOP_KEY_IP4_ADDRESS),
+                       json_result[IP4_ADDRESS_TAG].toString());
     }
 
     if(json_result.contains(IP4_NETMASK_TAG)) {
-        dataMap.insert(QLatin1String(NM_IPOP_KEY_IP4_NETMASK), json_result[IP4_NETMASK_TAG].toString());
+        dataMap.insert(QLatin1String(NM_IPOP_KEY_IP4_NETMASK),
+                       json_result[IP4_NETMASK_TAG].toString());
     }
 
     if (have_pass) {
-        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD"-flags"), QString::number(Knm::Setting::AgentOwned));
+        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD"-flags"),
+                       QString::number(Knm::Setting::AgentOwned));
     } else  {
-        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD"-flags"), QString::number(Knm::Setting::NotSaved));
+        dataMap.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD"-flags"),
+                       QString::number(Knm::Setting::NotSaved));
     }
 
-    conSetting << Knm::VpnSetting::variantMapFromStringList(Knm::VpnSetting::stringMapToStringList(dataMap));
-    conSetting << Knm::VpnSetting::variantMapFromStringList(Knm::VpnSetting::stringMapToStringList(secretData));
+    conSetting << Knm::VpnSetting::variantMapFromStringList(
+                      Knm::VpnSetting::stringMapToStringList(dataMap));
+    conSetting << Knm::VpnSetting::variantMapFromStringList(
+                      Knm::VpnSetting::stringMapToStringList(secretData));
     conSetting << QFileInfo(fileName).completeBaseName(); // Connection name
 
     return conSetting;
 }
 
-bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection, const QString &fileName) {
+bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection,
+                                            const QString &fileName) {
     QFile expFile(fileName);
     if (! expFile.open(QIODevice::WriteOnly | QIODevice::Text) ) {
         mError = VpnUiPlugin::Error;
@@ -138,7 +154,8 @@ bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection, const 
     QStringMap dataMap;
     QStringMap secretData;
 
-    Knm::VpnSetting * vpnSetting = static_cast<Knm::VpnSetting*>(connection->setting(Knm::Setting::Vpn));
+    Knm::VpnSetting * vpnSetting =
+        static_cast<Knm::VpnSetting*>(connection->setting(Knm::Setting::Vpn));
     dataMap = vpnSetting->data();
     secretData = vpnSetting->vpnSecrets();
 
@@ -149,15 +166,18 @@ bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection, const 
     }
 
     if (!dataMap[NM_IPOP_KEY_XMPP_USERNAME].isEmpty()) {
-        json_result.insert(XMPP_USERNAME_TAG, dataMap[NM_IPOP_KEY_XMPP_USERNAME]);
+        json_result.insert(XMPP_USERNAME_TAG,
+                           dataMap[NM_IPOP_KEY_XMPP_USERNAME]);
     }
 
     if (!dataMap[NM_IPOP_KEY_XMPP_PASSWORD].isEmpty()) {
-        json_result.insert(XMPP_PASSWORD_TAG, dataMap[NM_IPOP_KEY_XMPP_PASSWORD]);
+        json_result.insert(XMPP_PASSWORD_TAG,
+                           dataMap[NM_IPOP_KEY_XMPP_PASSWORD]);
     }
 
     if (!dataMap[NM_IPOP_KEY_IP4_ADDRESS].isEmpty()) {
-        json_result.insert(IP4_ADDRESS_TAG, dataMap[NM_IPOP_KEY_IP4_ADDRESS]);
+        json_result.insert(IP4_ADDRESS_TAG,
+                           dataMap[NM_IPOP_KEY_IP4_ADDRESS]);
     }
 
     if (!dataMap[NM_IPOP_KEY_IP4_NETMASK].isEmpty()) {
@@ -165,9 +185,12 @@ bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection, const 
             QNetworkAddressEntry address;
             address.setNetmask(QHostAddress(dataMap[NM_IPOP_KEY_IP4_NETMASK]));
             //TODO: why do we get -1 as prefix length?
-            json_result.insert(IP4_NETMASK_TAG, QHostAddress(dataMap[NM_IPOP_KEY_IP4_NETMASK]).toString()); //address.prefixLength());
+            json_result.insert(IP4_NETMASK_TAG,
+                QHostAddress(dataMap[NM_IPOP_KEY_IP4_NETMASK]).toString());
+                //address.prefixLength());
         } else {
-            json_result.insert(IP4_NETMASK_TAG, dataMap[NM_IPOP_KEY_IP4_NETMASK].toInt());
+            json_result.insert(IP4_NETMASK_TAG,
+                               dataMap[NM_IPOP_KEY_IP4_NETMASK].toInt());
         }
     }
 
@@ -190,6 +213,3 @@ bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection, const 
 
     return true;
 }
-
-// vim: sw=4 sts=4 et tw=100
-

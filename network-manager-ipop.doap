@@ -6,13 +6,22 @@
          xmlns="http://usefulinc.com/ns/doap#">
 
   <name xml:lang="en">network-manager-ipop</name>
-  <shortdesc xml:lang="en">OpenVPN support for NetworkManager</shortdesc>
+  <created>2014-10-05</created>
+  <shortdesc xml:lang="en">IPOP support for NetworkManager</shortdesc>
+  <description xml:lang="en">
+    This NetworkManager plugin enables you to manage your IPOP connections
+    with a comfortable user interface. IPOP (IP-over-P2P) is an open-source
+    user-centric software virtual network allowing end users to define and
+    create their own virtual private networks (VPNs). IPOP virtual networks
+    provide end-to-end IP tunneling over “TinCan” links setup and managed
+    through a control API to create various software-defined VPN overlays.
+  </description>
 
   <homepage rdf:resource="http://ipop-project.org/" />
-  <mailing-list rdf:resource="https://lists.ufl.edu/cgi-bin/wa?SUBED1=IPOP-USERS-L&A=1" />
-  <download-page rdf:resource="https://github.com/ipop-project/downloads/releases" />
-  <bug-database rdf:resource="https://github.com/ipop-project/ipop-tincan/issues" />
-  <category rdf:resource="http://api.gnome.org/doap-extensions#development" />
+  <download-page rdf:resource="https://github.com/RoboMod/network-manager-ipop/releases" />
+  <bug-database rdf:resource="https://github.com/RoboMod/network-manager-ipop/issues" />
+  <programming-language>C</programming-language>
+  <programming-language>C++</programming-language>
 
   <maintainer>
     <foaf:Person>
@@ -20,6 +29,13 @@
       <foaf:mbox rdf:resource="mailto:mod.andy@gmx.de" />
     </foaf:Person>
   </maintainer>
+
+  <repository>
+    <GitRepository>
+      <location rdf:resource="https://github.com/RoboMod/network-manager-ipop"/>
+      <browse rdf:resource="https://github.com/RoboMod/network-manager-ipop"/>
+    </GitRepository>
+  </repository>
 
 </Project>
 

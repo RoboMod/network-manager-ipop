@@ -1,22 +1,25 @@
-/*
-Copyright 2008 Will Stephenson <wstephenson@kde.org>
-
-This program is free software; you can redistribute it and/or
-modify it under the terms of the GNU General Public License as
-published by the Free Software Foundation; either version 2 of
-the License or (at your option) version 3 or any later version
-accepted by the membership of KDE e.V. (or its successor approved
-by the membership of KDE e.V.), which shall act as a proxy
-defined in Section 14 of version 3 of the license.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <http://www.gnu.org/licenses/>.
-*/
+/* ipopwidget.cpp - configuration widget for ipop connections
+ *
+ * Copyright 2008 Will Stephenson <wstephenson@kde.org>
+ * Copyright (C) 2014 Andreas Ihrig <mod.andy@gmx.de>
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation; either version 2 of
+ * the License or (at your option) version 3 or any later version
+ * accepted by the membership of KDE e.V. (or its successor approved
+ * by the membership of KDE e.V.), which shall act as a proxy
+ * defined in Section 14 of version 3 of the license.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
 
 #include "ipopwidget.h"
 #include "nm-ipop-service.h"
@@ -25,8 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <KStandardDirs>
 #include "connection.h"
 
-class IPOPSettingWidget::Private
-{
+class IPOPSettingWidget::Private {
 public:
     Ui_IPOPProp ui;
     Knm::VpnSetting* setting;
@@ -37,13 +39,16 @@ public:
     };
 };
 
-IPOPSettingWidget::IPOPSettingWidget(Knm::Connection * connection, QWidget * parent)
+IPOPSettingWidget::IPOPSettingWidget(Knm::Connection * connection,
+                                     QWidget * parent)
     : SettingWidget(connection, parent), d(new Private) {
     d->ui.setupUi(this);
-    d->setting = static_cast<Knm::VpnSetting *>(connection->setting(Knm::Setting::Vpn));
+    d->setting =
+        static_cast<Knm::VpnSetting *>(connection->setting(Knm::Setting::Vpn));
     d->readConfig = false;
 
-    connect(d->ui.xmpp_password_type_combo, SIGNAL(currentIndexChanged(int)), this, SLOT(xmppPasswordStorageChanged(int)));
+    connect(d->ui.xmpp_password_type_combo, SIGNAL(currentIndexChanged(int)),
+            this, SLOT(xmppPasswordStorageChanged(int)));
 }
 
 IPOPSettingWidget::~IPOPSettingWidget() {
@@ -76,14 +81,21 @@ void IPOPSettingWidget::writeConfig() {
     QStringMap secretData;
 
     // insert data from ui
-    data.insert(QLatin1String(NM_IPOP_KEY_XMPP_HOST), d->ui.xmpp_host->text());
-    data.insert(QLatin1String(NM_IPOP_KEY_XMPP_USERNAME), d->ui.xmpp_username->text());
+    data.insert(QLatin1String(NM_IPOP_KEY_XMPP_HOST),
+                d->ui.xmpp_host->text());
+    data.insert(QLatin1String(NM_IPOP_KEY_XMPP_USERNAME),
+                d->ui.xmpp_username->text());
     if (!d->ui.xmpp_password->text().isEmpty()) {
-        secretData.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD), d->ui.xmpp_password->text());
+        secretData.insert(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD),
+                          d->ui.xmpp_password->text());
     }
-    handleOnePasswordType(d->ui.xmpp_password_type_combo, QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD"-flags"), data);
-    data.insert(QLatin1String(NM_IPOP_KEY_IP4_ADDRESS), d->ui.ip4_address->text());
-    data.insert(QLatin1String(NM_IPOP_KEY_IP4_NETMASK), d->ui.ip4_netmask->text());
+    handleOnePasswordType(d->ui.xmpp_password_type_combo,
+                          QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD"-flags"),
+                          data);
+    data.insert(QLatin1String(NM_IPOP_KEY_IP4_ADDRESS),
+                d->ui.ip4_address->text());
+    data.insert(QLatin1String(NM_IPOP_KEY_IP4_NETMASK),
+                d->ui.ip4_netmask->text());
 
     d->setting->setData(data);
     d->setting->setVpnSecrets(secretData);
@@ -120,8 +132,10 @@ void IPOPSettingWidget::setPasswordType(QLineEdit *edit, int type) {
     }
 }
 
-void IPOPSettingWidget::fillOnePasswordCombo(QComboBox * combo, Knm::Setting::secretsTypes type) {
-    if (type.testFlag(Knm::Setting::AgentOwned) || type.testFlag(Knm::Setting::None)) {
+void IPOPSettingWidget::fillOnePasswordCombo(QComboBox * combo,
+                                             Knm::Setting::secretsTypes type) {
+    if (    type.testFlag(Knm::Setting::AgentOwned)
+         || type.testFlag(Knm::Setting::None)) {
         combo->setCurrentIndex(Private::EnumPasswordStorageType::Store);
     } else if (type.testFlag(Knm::Setting::NotRequired)) {
         combo->setCurrentIndex(Private::EnumPasswordStorageType::NotRequired);
@@ -130,7 +144,8 @@ void IPOPSettingWidget::fillOnePasswordCombo(QComboBox * combo, Knm::Setting::se
     }
 }
 
-uint IPOPSettingWidget::handleOnePasswordType(const QComboBox * combo, const QString & key,
+uint IPOPSettingWidget::handleOnePasswordType(const QComboBox * combo,
+                                              const QString & key,
                                               QStringMap& data) {
     uint type = combo->currentIndex();
     switch (type) {
@@ -146,6 +161,3 @@ uint IPOPSettingWidget::handleOnePasswordType(const QComboBox * combo, const QSt
     }
     return type;
 }
-
-// vim: sw=4 sts=4 et tw=100
-

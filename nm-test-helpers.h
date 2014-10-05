@@ -1,6 +1,7 @@
 /* NetworkManager -- Network link manager
  *
- * Dan Williams <dcbw@redhat.com>
+ * Copyright (C) 2008 Red Hat, Inc., Dan Williams <dcbw@redhat.com>
+ * Copyright (C) 2014 Andreas Ihrig <mod.andy@gmx.de>
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -16,7 +17,6 @@
  * with this program; if not, write to the Free Software Foundation, Inc.,
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  *
- * (C) Copyright 2008 Red Hat, Inc.
  */
 
 #ifndef NM_TEST_HELPERS_H
