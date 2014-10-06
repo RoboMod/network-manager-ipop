@@ -29,9 +29,10 @@
 
 #include "qjson/parser.h"
 #include "qjson/serializer.h"
-#include <QNetworkAddressEntry>
+#include <netinet/in.h>
 
 #include <nm-setting-ip4-config.h>
+#include "nm-utils.h"
 
 #include "ipopwidget.h"
 #include "ipopauth.h"
@@ -170,10 +171,32 @@ bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection,
                            dataMap[NM_IPOP_KEY_XMPP_USERNAME]);
     }
 
-    if (!dataMap[NM_IPOP_KEY_XMPP_PASSWORD].isEmpty()) {
-        json_result.insert(XMPP_PASSWORD_TAG,
-                           dataMap[NM_IPOP_KEY_XMPP_PASSWORD]);
-    }
+    //TODO: fix output of xmpp password to config file
+//    if (!secretData.value(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD)).isEmpty()) {
+//        json_result.insert(XMPP_PASSWORD_TAG,
+//                    secretData.value(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD)));
+//    }
+//    if (secretData[NM_IPOP_KEY_XMPP_PASSWORD"-flags"]  == QString::number(Knm::Setting::AgentOwned)) {
+//        json_result.insert(XMPP_PASSWORD_TAG,
+//                           "owned");
+//    } else {
+//        json_result.insert(XMPP_PASSWORD_TAG,
+//                           "not owned");
+//    }
+//    //}
+
+//    Knm::Setting::secretsTypes type;
+
+//    type = (Knm::Setting::secretsTypes)dataMap[NM_IPOP_KEY_XMPP_PASSWORD"-flags"].toInt();
+//    if (type & Knm::Setting::AgentOwned) {
+//        json_result.insert(XMPP_PASSWORD_TAG,
+//                secretData.value(QLatin1String(NM_IPOP_KEY_XMPP_PASSWORD)));
+//    } else if (type & Knm::Setting::None) {
+//        json_result.insert(XMPP_PASSWORD_TAG, "none");
+//    } else {
+//        json_result.insert(XMPP_PASSWORD_TAG, "not owned");
+//    }
+
 
     if (!dataMap[NM_IPOP_KEY_IP4_ADDRESS].isEmpty()) {
         json_result.insert(IP4_ADDRESS_TAG,
@@ -182,12 +205,13 @@ bool IPOPUiPlugin::exportConnectionSettings(Knm::Connection * connection,
 
     if (!dataMap[NM_IPOP_KEY_IP4_NETMASK].isEmpty()) {
         if (dataMap[NM_IPOP_KEY_IP4_NETMASK].startsWith("255.")) {
-            QNetworkAddressEntry address;
-            address.setNetmask(QHostAddress(dataMap[NM_IPOP_KEY_IP4_NETMASK]));
-            //TODO: why do we get -1 as prefix length?
-            json_result.insert(IP4_NETMASK_TAG,
-                QHostAddress(dataMap[NM_IPOP_KEY_IP4_NETMASK]).toString());
-                //address.prefixLength());
+            struct in_addr addr;
+            if (inet_pton(AF_INET,
+                    dataMap[NM_IPOP_KEY_IP4_NETMASK].toStdString().c_str(),
+                    &addr) == 1) {
+                int netmask = nm_utils_ip4_netmask_to_prefix(addr.s_addr);
+                json_result.insert(IP4_NETMASK_TAG, netmask);
+            }
         } else {
             json_result.insert(IP4_NETMASK_TAG,
                                dataMap[NM_IPOP_KEY_IP4_NETMASK].toInt());

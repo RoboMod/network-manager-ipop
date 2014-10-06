@@ -25,8 +25,6 @@ link_directories(${NETWORKMANAGERQT_LIBRARY_DIRS} ${QJSON_LIBRARY_DIRS} ${CMAKE_
 
 find_package(NetworkManager ${MINIMUM_NM_VERSION_REQUIRED})
 
-find_package(NetworkManager ${MINIMUM_NM_VERSION_REQUIRED})
-
 if(NETWORKMANAGER_FOUND)
     PKG_SEARCH_MODULE( NM-UTIL libnm-util )
     if(NOT NM-UTIL_FOUND)
@@ -44,6 +42,7 @@ if(NETWORKMANAGER_FOUND)
            solidcontrolfuture/libs
            ${KDE4_INCLUDE_DIR}/solid/control
         )
+        link_directories(${NM-UTIL_LIBRARY_DIRS})
 
         add_subdirectory(solidcontrolfuture)
         add_subdirectory(settings)

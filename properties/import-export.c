@@ -86,29 +86,34 @@ NMConnection* do_import(const char* path, GError** error) {
         json_reader = json_reader_new(json_parser_get_root(json_parser));
 
         if(json_reader_read_member(json_reader, XMPP_HOST_TAG)) {
-            nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_XMPP_HOST, json_reader_get_string_value(json_reader));
+            nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_XMPP_HOST,
+                                    json_reader_get_string_value(json_reader));
         }
         json_reader_end_member(json_reader);
 
         if(json_reader_read_member(json_reader, XMPP_USERNAME_TAG)) {
-            nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_XMPP_USERNAME, json_reader_get_string_value(json_reader));
+            nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_XMPP_USERNAME,
+                                    json_reader_get_string_value(json_reader));
         }
         json_reader_end_member(json_reader);
 
         if(json_reader_read_member(json_reader, XMPP_PASSWORD_TAG)) {
-            nm_setting_vpn_add_secret(s_vpn, NM_IPOP_KEY_XMPP_PASSWORD, json_reader_get_string_value(json_reader));
+            nm_setting_vpn_add_secret(s_vpn, NM_IPOP_KEY_XMPP_PASSWORD,
+                                    json_reader_get_string_value(json_reader));
             have_pass = TRUE;
         }
         json_reader_end_member(json_reader);
 
         if(json_reader_read_member(json_reader, IP4_ADDRESS_TAG)) {
-            nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_IP4_ADDRESS, json_reader_get_string_value(json_reader));
+            nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_IP4_ADDRESS,
+                                    json_reader_get_string_value(json_reader));
         }
         json_reader_end_member(json_reader);
 
         if(json_reader_read_member(json_reader, IP4_NETMASK_TAG)) {
             nm_setting_vpn_add_data_item(s_vpn, NM_IPOP_KEY_IP4_NETMASK,
-                                g_strdup_printf("%d", (int)json_reader_get_int_value(json_reader)));
+                        g_strdup_printf("%d",
+                               (int)json_reader_get_int_value(json_reader)));
         }
         json_reader_end_member(json_reader);
     } else {
