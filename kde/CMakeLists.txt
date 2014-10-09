@@ -1,5 +1,5 @@
 project(networkmanagement_ipop)
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 2.8)
 set(MINIMUM_NM_VERSION_REQUIRED "0.9.6")
 
 find_package(KDE4 "4.9.0" REQUIRED)
