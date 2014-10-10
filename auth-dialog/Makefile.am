@@ -5,6 +5,7 @@ nm_ipop_auth_dialog_CPPFLAGS =			\
 	$(GTK_CFLAGS)				\
 	$(NM_CFLAGS)		\
 	$(GNOMEKEYRING_CFLAGS) \
+        $(LIBSECRET_CFLAGS) \
 	-I$(top_srcdir)/
 	-DICONDIR=\""$(datadir)/pixmaps"\"	\
 	-DUIDIR=\""$(uidir)"\"		\
@@ -24,6 +25,7 @@ nm_ipop_auth_dialog_LDADD = \
 	$(GTK_LIBS) \
 	$(NM_LIBS) \
 	$(GNOMEKEYRING_LIBS) \
+        $(LIBSECRET_LIBS) \
 	$(top_builddir)/common/libnm-ipop-common.la
 
 CLEANFILES = *~

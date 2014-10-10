@@ -29,8 +29,19 @@
 #include <stdlib.h>
 #include <glib/gi18n.h>
 #include <gtk/gtk.h>
+
+// added libsecret code as replacement for gnome-keyring
+// copied from https://git.gnome.org/browse/network-manager-openvpn/commit/?id=038bdaa095056fe2940e5f15c97768496f91c98d
+#if defined(HAVE_LIBSECRET)
+// "secret api subject to change" needed cause unstable features of libsecret
+// used
+#define SECRET_API_SUBJECT_TO_CHANGE
+#include <libsecret/secret.h>
+#else
 #include <gnome-keyring.h>
 #include <gnome-keyring-memory.h>
+#endif
+
 #include <nm-setting-vpn.h>
 #include <nm-setting-connection.h>
 #include <nm-vpn-plugin-utils.h>
@@ -43,15 +54,56 @@
 #define KEYRING_SN_TAG "setting-name"
 #define KEYRING_SK_TAG "setting-key"
 
+#if defined(HAVE_LIBSECRET)
+static const SecretSchema network_manager_secret_schema = {
+    "org.freedesktop.NetworkManager.Connection",
+    SECRET_SCHEMA_DONT_MATCH_NAME,
+    {
+        { KEYRING_UUID_TAG, SECRET_SCHEMA_ATTRIBUTE_STRING },
+        { KEYRING_SN_TAG, SECRET_SCHEMA_ATTRIBUTE_STRING },
+        { KEYRING_SK_TAG, SECRET_SCHEMA_ATTRIBUTE_STRING },
+        { NULL, 0 },
+    }
+};
+#endif
+
 #define UI_KEYFILE_GROUP "VPN Plugin UI"
 
 static char * keyring_lookup_secret (const char *uuid,
                                      const char *secret_name) {
-	GList *found_list = NULL;
+    #if defined(HAVE_LIBSECRET)
+    GHashTable *attrs;
+    GList *list;
+    #else
+    GList *found_list = NULL;
 	GnomeKeyringResult ret;
 	GnomeKeyringFound *found;
+    #endif
 	char *secret = NULL;
 
+    #if defined(HAVE_LIBSECRET)
+    attrs = secret_attributes_build(&network_manager_secret_schema,
+                                    KEYRING_UUID_TAG, uuid,
+                                    KEYRING_SN_TAG, NM_SETTING_VPN_SETTING_NAME,
+                                    KEYRING_SK_TAG, secret_name,
+                                    NULL);
+
+    list = secret_service_search_sync(NULL, &network_manager_secret_schema, attrs,
+            SECRET_SEARCH_ALL | SECRET_SEARCH_UNLOCK | SECRET_SEARCH_LOAD_SECRETS,
+            NULL, NULL);
+    if (list && list->data) {
+        SecretItem *item = list->data;
+        SecretValue *value = secret_item_get_secret(item);
+
+        if (value) {
+            secret = g_strdup(secret_value_get(value, NULL));
+            secret_value_unref(value);
+        }
+    }
+
+    g_list_free_full(list, g_object_unref);
+    g_hash_table_unref(attrs);
+    #else
     ret = gnome_keyring_find_itemsv_sync(GNOME_KEYRING_ITEM_GENERIC_SECRET,
                                          &found_list,
                                          KEYRING_UUID_TAG,
@@ -70,6 +122,8 @@ static char * keyring_lookup_secret (const char *uuid,
 	}
 
     gnome_keyring_found_list_free(found_list);
+    #endif
+
 	return secret;
 }
 
@@ -119,7 +173,11 @@ static gboolean get_secrets(const char *vpn_name,
     if (need_password) {
         if (!(pw_flags & NM_SETTING_SECRET_FLAG_NOT_SAVED)) {
             if (in_pass)
+                #if defined(HAVE_LIBSECRET)
+                password = g_strdup(in_pass);
+                #else
                 password = gnome_keyring_memory_strdup(in_pass);
+                #endif
             else
                 password = keyring_lookup_secret(vpn_uuid,
                                                  NM_IPOP_KEY_XMPP_PASSWORD);
@@ -178,9 +236,15 @@ static gboolean get_secrets(const char *vpn_name,
     gtk_widget_show(GTK_WIDGET(dialog));
 
     if (vpn_password_dialog_run_and_block(dialog)) {
-        if (need_password)
+        if (need_password) {
+            #if defined(HAVE_LIBSECRET)
+            *out_password = g_strdup(
+                                vpn_password_dialog_get_password(dialog));
+            #else
             *out_password = gnome_keyring_memory_strdup(
                                 vpn_password_dialog_get_password(dialog));
+            #endif
+        }
 
         success = TRUE;
     }
@@ -188,7 +252,11 @@ static gboolean get_secrets(const char *vpn_name,
     gtk_widget_destroy(GTK_WIDGET(dialog));
 
  out:
+    #if defined(HAVE_LIBSECRET)
+    g_free(password);
+    #else
     gnome_keyring_memory_free(password);
+    #endif
 
     g_free(prompt);
 
@@ -319,8 +387,13 @@ int main (int argc, char *argv[]) {
             printf("%s\n%s\n", NM_IPOP_KEY_XMPP_PASSWORD, new_password);
         printf("\n\n");
 
-        if (new_password)
+        if (new_password) {
+            #if defined(HAVE_LIBSECRET)
+            g_free(new_password);
+            #else
             gnome_keyring_memory_free(new_password);
+            #endif
+        }
 
         /* for good measure, flush stdout since Kansas is going Bye-Bye */
         fflush(stdout);

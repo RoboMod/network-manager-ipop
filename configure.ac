@@ -97,9 +97,19 @@ if test x"$with_gnome" != xno; then
 	AC_SUBST(GTK_CFLAGS)
 	AC_SUBST(GTK_LIBS)
 
-	PKG_CHECK_MODULES(GNOMEKEYRING, gnome-keyring-1)
-	AC_SUBST(GNOMEKEYRING_CFLAGS)
-	AC_SUBST(GNOMEKEYRING_LIBS)
+        PKG_CHECK_EXISTS([libsecret-1],
+            [
+                PKG_CHECK_MODULES([LIBSECRET], [libsecret-unstable])
+                AC_SUBST(LIBSECRET_CFLAGS)
+                AC_SUBST(LIBSECRET_LIBS)
+                AC_DEFINE_UNQUOTED([HAVE_LIBSECRET], "1", [Use libsecret])
+            ],
+            [
+                PKG_CHECK_MODULES([GNOMEKEYRING], [gnome-keyring-1])
+                AC_SUBST(GNOMEKEYRING_CFLAGS)
+                AC_SUBST(GNOMEKEYRING_LIBS)
+            ]
+        )
 
 	dnl maintainer mode stuff
 	if test $USE_MAINTAINER_MODE = yes; then
