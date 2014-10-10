@@ -350,8 +350,9 @@ static gboolean send_config_to_nm(NMIPOPPlugin* plugin) {
     GValue *val;
     GError *err = NULL;
 
-    // really needed?
-    g_type_init ();
+    #if !GLIB_CHECK_VERSION(2,35,0)
+    g_type_init();
+    #endif
 
     // connect to dbus system
     connection = dbus_g_bus_get (DBUS_BUS_SYSTEM, &err);
@@ -1310,7 +1311,9 @@ int main(int argc, char* argv[]) {
     gboolean persist = FALSE;
 
     // init glib type system
+    #if !GLIB_CHECK_VERSION(2,35,0)
     g_type_init();
+    #endif
 
     // handle options and get persist
     persist = handle_options(argc, argv);
