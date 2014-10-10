@@ -194,10 +194,18 @@ vpn_password_dialog_new (const char *title,
 	gtk_window_set_title (GTK_WINDOW (dialog), title);
 	gtk_window_set_resizable (GTK_WINDOW (dialog), FALSE);
 
+    #if !GTK_CHECK_VERSION(3,10,0)
 	gtk_dialog_add_buttons (GTK_DIALOG (dialog),
 	                        GTK_STOCK_CANCEL, GTK_RESPONSE_CANCEL,
 	                        GTK_STOCK_OK, GTK_RESPONSE_OK,
 	                        NULL);
+    #else
+    gtk_dialog_add_buttons (GTK_DIALOG (dialog),
+                            _Cancel, GTK_RESPONSE_CANCEL,
+                            _OK, GTK_RESPONSE_OK,
+                            NULL);
+    #endif
+    
 	gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_OK);
 
 	content = GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog)));
@@ -258,7 +266,13 @@ vpn_password_dialog_new (const char *title,
 	/* Adds some eye-candy to the dialog */
 	hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
  	gtk_container_set_border_width (GTK_CONTAINER (hbox), 5);
-	dialog_icon = gtk_image_new_from_stock (GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_DIALOG);
+    
+    #if !GTK_CHECK_VERSION(3,10,0)
+	dialog_icon = gtk_image_new_from_stock(GTK_STOCK_DIALOG_AUTHENTICATION, GTK_ICON_SIZE_DIALOG);
+    #else
+    dialog_icon = gtk_image_new_from_icon_name("dialog-password", GTK_ICON_SIZE_DIALOG);
+    #endif
+    
 	gtk_misc_set_alignment (GTK_MISC (dialog_icon), 0.5, 0.0);
 	gtk_box_pack_start (GTK_BOX (hbox), dialog_icon, FALSE, FALSE, 0);
 
